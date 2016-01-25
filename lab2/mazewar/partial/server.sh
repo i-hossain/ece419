@@ -1,4 +1,5 @@
 #!/bin/bash
+JAVA_HOME=/usr/
 
 if [ "$#" -ne 1 ]; then
     echo "Usage: ./server.sh  <port>"
