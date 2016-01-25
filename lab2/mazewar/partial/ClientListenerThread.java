@@ -21,8 +21,11 @@ public class ClientListenerThread implements Runnable {
     }
 
     public void run() {
+    	System.out.println("Client Listener Thread started");
+    	
         Thread enqueueThread = new Thread() { 
         	public void run() {
+        		System.out.println("enqueue Thread started");
         		MPacket received = null;
                 if(Debug.debug) System.out.println("Starting ClientListenerThread");
                 while(true){
@@ -46,13 +49,15 @@ public class ClientListenerThread implements Runnable {
         
         Thread dequeueThread = new Thread() { 
         	public void run() {
+        		System.out.println("dequeue Thread started");
         		MPacket head = null;
             	Client client = null;
             	while(true){
             		try {
 	            		head = clientQueue.peek();
 	            		if (head != null && head.sequenceNumber == globalSequenceNumber) {
-	            			
+	            			// print sqno
+	            			System.out.println("sqno client: " + globalSequenceNumber);
 	            			// Remove head
 	            			head = clientQueue.take();
 	            			// Execute the action
