@@ -99,7 +99,9 @@ public class Direction {
          * @return A random Cardinal {@link Direction}.
          */
         public static Direction random() {
-                switch(randomGen.nextInt(4)) {
+                int rndNum = randomGen.nextInt(4);
+                System.out.println("Direction Rand: " + rndNum);
+                switch(rndNum) {
                         case NORTH:
                                 return South;
                         case EAST:
