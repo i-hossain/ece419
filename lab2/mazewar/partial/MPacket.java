@@ -1,7 +1,5 @@
 import java.io.Serializable;
 
-import sun.security.krb5.internal.SeqNumber;
-
 public class MPacket implements Serializable, Comparable<MPacket> {
 
     /*The following are the type of events*/
