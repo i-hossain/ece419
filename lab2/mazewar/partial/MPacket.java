@@ -1,6 +1,8 @@
 import java.io.Serializable;
 
-public class MPacket implements Serializable {
+import sun.security.krb5.internal.SeqNumber;
+
+public class MPacket implements Serializable, Comparable<MPacket> {
 
     /*The following are the type of events*/
     public static final int HELLO = 100;
@@ -92,6 +94,10 @@ public class MPacket implements Serializable {
         String retString = String.format("MPACKET(NAME: %s, <%s: %s>, SEQNUM: %s)", name, 
             typeStr, eventStr, sequenceNumber);
         return retString;
+    }
+    
+    public int compareTo(MPacket other) {
+    	return (sequenceNumber < other.sequenceNumber) ? -1 : 1;
     }
 
 }
