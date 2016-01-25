@@ -28,11 +28,18 @@ import java.util.Random;
 public class Direction {
         
         /* Internals ******************************************************/
+
+        /**
+         * The default random seed for the {@link Maze}.
+         * All implementations of the same protocol must use 
+         * the same seed value, or your mazes will be different.
+         */
+        private static final int mazeSeed = 42;
         
         /**
          * Create a random number generator to produce random directions.
          */
-        private static Random randomGen = new Random();
+        private static Random randomGen = new Random(mazeSeed);
         
         /** 
          * Internal representation of directions
