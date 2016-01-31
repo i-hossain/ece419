@@ -180,6 +180,10 @@ public abstract class Client {
                         return false;
                 }
         }
+
+        protected void die() {
+               notifyDeath(); 
+        }
         
         
         /** 
@@ -215,6 +219,10 @@ public abstract class Client {
          */
         private void notifyFire() {
                 notifyListeners(ClientEvent.fire);       
+        }
+
+        private void notifyDeath() {
+                notifyListeners(ClientEvent.die);       
         }
         
         /**

@@ -44,6 +44,8 @@ import java.util.HashMap;
 
 public class MazeImpl extends Maze implements Serializable, ClientListener, Runnable {
 
+        HashSet deathQueue = new HashSet();
+
         /**
          * Create a {@link Maze}.
          * @param point Treat the {@link Point} as a magintude specifying the
@@ -357,6 +359,9 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                         rotateClientLeft(c);
                 } else if(ce == ClientEvent.turnRight) {
                         rotateClientRight(c);
+                } else if(ce == ClientEvent.die) {
+                        while(!deathQueue.contains(c.getName()));
+                        deathQueue.remove(c.getName());
                 }
         }
 
