@@ -181,6 +181,8 @@ public class Mazewar extends JFrame {
 
                 //Initialize queue of events
                 eventQueue = new LinkedBlockingQueue<MPacket>();
+                //TODO: 
+                maze.addEventQueue(eventQueue);
                 //Initialize hash table of clients to client name 
                 clientTable = new Hashtable<String, Client>(); 
                 
@@ -193,6 +195,8 @@ public class Mazewar extends JFrame {
                                 maze.addClientAt(guiClient, player.point, player.direction);
                                 this.addKeyListener(guiClient);
                                 clientTable.put(player.name, guiClient);
+                                //TODO: 
+                                maze.addMyClient(player.name, guiClient);
                         }else{
                         	if(Debug.debug)System.out.println("Adding remoteClient: " + player);
                                 RemoteClient remoteClient = new RemoteClient(player.name);

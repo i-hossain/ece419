@@ -77,9 +77,9 @@ public class ClientEvent {
         public static final ClientEvent fire = new ClientEvent(FIRE);
 
         /**
-         * Generated when a {@link Client} dies.
+         * Generated when a {@link Client} moves projectile.
          */
-        public static final ClientEvent die = new ClientEvent(DIE);
+        public static final ClientEvent moveProjectile = new ClientEvent(MP);
         
         
 }

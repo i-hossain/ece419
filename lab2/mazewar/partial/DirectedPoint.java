@@ -25,6 +25,7 @@ import java.io.Serializable;
  * @author Geoffrey Washburn &lt;<a href="mailto:geoffw@cis.upenn.edu">geoffw@cis.upenn.edu</a>&gt;
  * @version $Id: DirectedPoint.java 339 2004-01-23 20:06:22Z geoffw $
  */
+//TODO: implement serializable
 
 public class DirectedPoint extends Point {
 

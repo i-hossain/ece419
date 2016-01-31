@@ -19,6 +19,7 @@ public class MPacket implements Serializable, Comparable<MPacket> {
     public static final int LEFT = 203;
     public static final int RIGHT = 204;
     public static final int FIRE = 205;
+    public static final int MP = 206;
     
     //These fields characterize the event  
     public int type;
@@ -36,6 +37,8 @@ public class MPacket implements Serializable, Comparable<MPacket> {
     public int mazeWidth; 
     public Player[] players;
 
+    public DirectedPoint dp;
+
     public MPacket(int type, int event){
         this.type = type;
         this.event = event;
@@ -45,6 +48,13 @@ public class MPacket implements Serializable, Comparable<MPacket> {
         this.name = name;
         this.type = type;
         this.event = event;
+    }
+
+    public MPacket(String name, int type, int event, DirectedPoint dp){
+        this.name = name;
+        this.type = type;
+        this.event = event;
+        this.dp = dp; // Directed Projectile
     }
     
     public String toString(){
@@ -84,6 +94,8 @@ public class MPacket implements Serializable, Comparable<MPacket> {
             case 205:
                 eventStr = "FIRE";
                 break;
+            case 206:
+                eventStr = "MP"
             default:
                 eventStr = "ERROR";
                 break;        

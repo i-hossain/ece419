@@ -46,6 +46,9 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
         HashSet deathQueue = new HashSet();
 
+        private BlockingQueue<MPacket> eventQueue = null;
+        //TODO: implement hash map
+
         /**
          * Create a {@link Maze}.
          * @param point Treat the {@link Point} as a magintude specifying the
