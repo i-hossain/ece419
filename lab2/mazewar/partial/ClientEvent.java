@@ -34,7 +34,8 @@ public class ClientEvent {
         private static final int TURN_LEFT = 2;
         private static final int TURN_RIGHT = 3;
         private static final int FIRE = 4;
-        private static final int DIE = 5;
+        // private static final int DIE = 5;
+        private static final int MP = 5;
         
         /**
          * Default to 0, to be invalid.

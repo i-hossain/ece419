@@ -181,8 +181,14 @@ public abstract class Client {
                 }
         }
 
-        protected void die() {
-               notifyDeath(); 
+        // protected void die() {
+        //        notifyDeath(); 
+        // }
+
+        protected void moveProjectile(Projectile prj) {
+                assert(maze != null);
+
+                maze.runMoveProjectile(prj);
         }
         
         
@@ -221,9 +227,9 @@ public abstract class Client {
                 notifyListeners(ClientEvent.fire);       
         }
 
-        private void notifyDeath() {
-                notifyListeners(ClientEvent.die);       
-        }
+        // private void notifyDeath() {
+        //         notifyListeners(ClientEvent.die);       
+        // }
         
         /**
          * Send a the specified {@link ClientEvent} to all registered listeners
