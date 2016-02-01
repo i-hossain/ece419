@@ -18,6 +18,7 @@ USA.
 */
   
 import java.util.Iterator;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * An abstract class for representing mazes, and the operations a {@link Client}
@@ -125,4 +126,8 @@ public abstract class Maze {
 
 
     public abstract void runMoveProjectile(Projectile prj);
+
+	public abstract void addEventQueue(BlockingQueue eventQueue);
+
+	public abstract void addMyClient(String name, GUIClient guiClient);
 }

@@ -33,6 +33,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A concrete implementation of a {@link Maze}.  
@@ -46,6 +47,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
         private BlockingQueue<MPacket> eventQueue = null;
         //TODO: implement hash map
+        Map<String, Client> myClientMap = new ConcurrentHashMap<String, Client>();
 
         /**
          * Create a {@link Maze}.
@@ -380,6 +382,15 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                                 Object o = it.next();
                                                 assert(o instanceof Projectile);
                                                 // TODO: Send 'MP' MPacket if it belongs to our client
+                                                Projectile prj = (Projectile) o;
+                                                if (myClientMap.containsKey(prj.getOwner())) {
+                                                	try {
+														eventQueue.put(new MPacket(prj.getOwner().getName(), MPacket.ACTION, MPacket.MP, prj));
+													} catch (InterruptedException e) {
+														// TODO Auto-generated catch block
+														e.printStackTrace();
+													}
+                                                }
                                                 //deadPrj.addAll(moveProjectile((Projectile)o));
                                         }
                                 }
@@ -390,6 +401,14 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                 // shouldn't happen
                         }
                 }
+        }
+        
+        public void addEventQueue(BlockingQueue eventQueue) {
+        	this.eventQueue = eventQueue;
+        }
+        
+        public void addMyClient(String name, GUIClient guiClient) {
+        	myClientMap.put(name, guiClient);
         }
         
         /* Internals */
@@ -409,6 +428,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 }
 
         }
+        
         
         private synchronized Collection moveProjectile(Projectile prj) {
                 Collection deadPrj = new LinkedList();

@@ -181,7 +181,6 @@ public class Mazewar extends JFrame {
 
                 //Initialize queue of events
                 eventQueue = new LinkedBlockingQueue<MPacket>();
-                //TODO: 
                 maze.addEventQueue(eventQueue);
                 //Initialize hash table of clients to client name 
                 clientTable = new Hashtable<String, Client>(); 
