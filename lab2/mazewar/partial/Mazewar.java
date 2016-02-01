@@ -32,6 +32,8 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.Socket;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -106,6 +108,8 @@ public class Mazewar extends JFrame {
          * the static consolePrint methods  
          */
         private static final JTextPane console = new JTextPane();
+        
+        private Map<Client, Projectile> myProjMap = new ConcurrentHashMap<Client, Projectile>();
       
         /** 
          * Write a message to the console followed by a newline.
@@ -182,6 +186,9 @@ public class Mazewar extends JFrame {
                 //Initialize queue of events
                 eventQueue = new LinkedBlockingQueue<MPacket>();
                 maze.addEventQueue(eventQueue);
+                
+                maze.addProjMap(myProjMap);
+                
                 //Initialize hash table of clients to client name 
                 clientTable = new Hashtable<String, Client>(); 
                 
@@ -190,7 +197,7 @@ public class Mazewar extends JFrame {
                 for(Player player: resp.players){  
                         if(player.name.equals(name)){
                         	if(Debug.debug)System.out.println("Adding guiClient: " + player);
-                                guiClient = new GUIClient(name, eventQueue);
+                                guiClient = new GUIClient(name, eventQueue, myProjMap);
                                 maze.addClientAt(guiClient, player.point, player.direction);
                                 this.addKeyListener(guiClient);
                                 clientTable.put(player.name, guiClient);

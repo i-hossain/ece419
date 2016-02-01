@@ -19,7 +19,9 @@ USA.
 
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An implementation of {@link LocalClient} that is controlled by the keyboard
@@ -35,9 +37,12 @@ public class GUIClient extends LocalClient implements KeyListener {
          */
         private BlockingQueue eventQueue = null;
         
-        public GUIClient(String name, BlockingQueue eventQueue) {
+        private Map<Client, Projectile> myProjMap = new ConcurrentHashMap<Client, Projectile>();
+        
+        public GUIClient(String name, BlockingQueue eventQueue, Map<Client, Projectile> myProjMap) {
                 super(name);
                 this.eventQueue = eventQueue;
+                this.myProjMap = myProjMap;
         }
         
         /**
@@ -68,7 +73,11 @@ public class GUIClient extends LocalClient implements KeyListener {
                         // Spacebar fires.
                         } else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
                                 //fire();
-                                eventQueue.put(new MPacket(getName(), MPacket.ACTION, MPacket.FIRE));
+                        		synchronized (myProjMap) {
+                        			if (!myProjMap.containsKey(this)) {
+                        				eventQueue.put(new MPacket(getName(), MPacket.ACTION, MPacket.FIRE));
+                        			}
+								}
                         }
                 }catch(InterruptedException ie){
                         //An exception is caught, do something

@@ -18,6 +18,7 @@ USA.
 */
   
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 /**
@@ -130,4 +131,6 @@ public abstract class Maze {
 	public abstract void addEventQueue(BlockingQueue eventQueue);
 
 	public abstract void addMyClient(String name, GUIClient guiClient);
+
+	public abstract void addProjMap(Map<Client, Projectile> myProjMap);
 }

@@ -47,9 +47,10 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 
         private BlockingQueue<MPacket> eventQueue = null;
         //TODO: implement hash map
-        Map<String, Client> myClientMap = new ConcurrentHashMap<String, Client>();
-        Map<Client, Projectile> myProjMap = new ConcurrentHashMap<Client, Projectile>();
+        private Map<String, Client> myClientMap = new ConcurrentHashMap<String, Client>();
 
+        private Map<Client, Projectile> myProjMap = new ConcurrentHashMap<Client, Projectile>();
+        
         /**
          * Create a {@link Maze}.
          * @param point Treat the {@link Point} as a magintude specifying the
@@ -415,6 +416,11 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         	myClientMap.put(name, guiClient);
         	System.out.println("Added GUIClient to my client map: " + name);
         }
+        
+        public void addProjMap(Map<Client, Projectile> myProjMap) {
+			// TODO Auto-generated method stub
+			this.myProjMap = myProjMap;
+		}
         
         /* Internals */
         public void runMoveProjectile(Client cl) {
