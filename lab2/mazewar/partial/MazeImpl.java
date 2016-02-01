@@ -378,17 +378,17 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
 //                Collection deadPrj = new HashSet();
                 while(true) {
                         if(!projectileMap.isEmpty()) {
-                                Iterator it = projectileMap.keySet().iterator();
-                                synchronized(projectileMap) {
+//                                Iterator it = myClientMap.keySet().iterator();
+                                //synchronized(projectileMap) {
                                 	synchronized (myProjMap) {
-                                        while(it.hasNext()) {   
-                                                Object o = it.next();
-                                                assert(o instanceof Projectile);
+                                        for(Client cl : myClientMap.values()) {   
+                                                //Object o = it.next();
+                                                //assert(o instanceof Client);
                                                 // TODO: Send 'MP' MPacket if it belongs to our client
-                                                Projectile prj = (Projectile) o;
-                                                if (myClientMap.containsKey(prj.getOwner().getName())) {
+                                                //Client cl = (Client) myClientMap.get(o);
+                                                if (myProjMap.containsKey(cl)) {
                                                 	try {
-														eventQueue.put(new MPacket(prj.getOwner().getName(), MPacket.ACTION, MPacket.MP));
+														eventQueue.put(new MPacket(cl.getName(), MPacket.ACTION, MPacket.MP));
 													} catch (InterruptedException e) {
 														// TODO Auto-generated catch block
 														e.printStackTrace();
@@ -397,7 +397,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                                 //deadPrj.addAll(moveProjectile((Projectile)o));
                                         }
                                 	}
-                                }
+                                //}
                         }
                         try {
                                 thread.sleep(200);
