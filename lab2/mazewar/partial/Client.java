@@ -185,10 +185,10 @@ public abstract class Client {
         //        notifyDeath(); 
         // }
 
-        protected void moveProjectile(Projectile prj) {
+        protected void moveProjectile() {
                 assert(maze != null);
 
-                maze.runMoveProjectile(prj);
+                maze.runMoveProjectile(this);
         }
         
         

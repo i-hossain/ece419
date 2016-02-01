@@ -48,6 +48,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         private BlockingQueue<MPacket> eventQueue = null;
         //TODO: implement hash map
         Map<String, Client> myClientMap = new ConcurrentHashMap<String, Client>();
+        Map<Client, Projectile> myProjMap = new ConcurrentHashMap<Client, Projectile>();
 
         /**
          * Create a {@link Maze}.
@@ -314,6 +315,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 
                 /* Write the new cell */
                 projectileMap.put(prj, newPoint);
+                myProjMap.put(prj.getOwner(), prj);
                 newCell.setContents(prj);
                 notifyClientFired(client);
                 update();
@@ -378,14 +380,15 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                         if(!projectileMap.isEmpty()) {
                                 Iterator it = projectileMap.keySet().iterator();
                                 synchronized(projectileMap) {
+                                	synchronized (myProjMap) {
                                         while(it.hasNext()) {   
                                                 Object o = it.next();
                                                 assert(o instanceof Projectile);
                                                 // TODO: Send 'MP' MPacket if it belongs to our client
                                                 Projectile prj = (Projectile) o;
-                                                if (myClientMap.containsKey(prj.getOwner())) {
+                                                if (myClientMap.containsKey(prj.getOwner().getName())) {
                                                 	try {
-														eventQueue.put(new MPacket(prj.getOwner().getName(), MPacket.ACTION, MPacket.MP, prj));
+														eventQueue.put(new MPacket(prj.getOwner().getName(), MPacket.ACTION, MPacket.MP));
 													} catch (InterruptedException e) {
 														// TODO Auto-generated catch block
 														e.printStackTrace();
@@ -393,6 +396,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                                                 }
                                                 //deadPrj.addAll(moveProjectile((Projectile)o));
                                         }
+                                	}
                                 }
                         }
                         try {
@@ -409,32 +413,44 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
         
         public void addMyClient(String name, GUIClient guiClient) {
         	myClientMap.put(name, guiClient);
+        	System.out.println("Added GUIClient to my client map: " + name);
         }
         
         /* Internals */
-        public void runMoveProjectile(Projectile prj) {
+        public void runMoveProjectile(Client cl) {
                 Collection deadPrj = new HashSet();
                 synchronized(projectileMap) {
-                        deadPrj.addAll(moveProjectile(prj));              
+                	synchronized (myProjMap) {
+
+                        deadPrj.addAll(moveProjectile(cl));              
                         Iterator it = deadPrj.iterator();
                         while(it.hasNext()) {
                                 Object o = it.next();
                                 assert(o instanceof Projectile);
                                 Projectile prjd = (Projectile)o;
+                                myProjMap.remove(prjd.getOwner());
                                 projectileMap.remove(prjd);
                                 clientFired.remove(prjd.getOwner());
                         }
                         deadPrj.clear();
+                	}
                 }
 
         }
         
         
-        private synchronized Collection moveProjectile(Projectile prj) {
+        private synchronized Collection moveProjectile(Client cl) {
+        		Projectile prj = myProjMap.get(cl);
+        	
                 Collection deadPrj = new LinkedList();
-                assert(prj != null);
+                if (prj == null)
+                	return deadPrj;
                 
+                assert(prj instanceof Projectile);
                 Object o = projectileMap.get(prj);
+                if (o == null)
+                	return deadPrj;
+                
                 assert(o instanceof DirectedPoint);
                 DirectedPoint dp = (DirectedPoint)o;
                 Direction d = dp.getDirection();
@@ -486,6 +502,7 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 cell.setContents(null);
                 /* Write the new cell */
                 projectileMap.put(prj, newPoint);
+                myProjMap.put(prj.getOwner(), prj);
                 newCell.setContents(prj);
                 update();
                 return deadPrj;

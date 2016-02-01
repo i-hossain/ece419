@@ -125,7 +125,7 @@ public abstract class Maze {
     public abstract void removeMazeListener(MazeListener ml);
 
 
-    public abstract void runMoveProjectile(Projectile prj);
+    public abstract void runMoveProjectile(Client cl);
 
 	public abstract void addEventQueue(BlockingQueue eventQueue);
 
