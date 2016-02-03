@@ -17,6 +17,7 @@ CAT=cat
 FILES=Mazewar.class
 
 all: ${FILES}
+	$(MAKE) -C partial
 
 # Rule for making classes.
 %.class : %.java 
