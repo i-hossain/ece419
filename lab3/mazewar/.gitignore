@@ -1,0 +1,7 @@
+*.class
+*.tar
+*.gz
+*.tar.gz
+hossain.rameshkumar.lab2/
+src/
+bin/
