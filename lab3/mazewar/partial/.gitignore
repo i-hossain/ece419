@@ -2,3 +2,6 @@
 *.tar
 *.gz
 *.tar.gz
+.classpath
+.project
+.settings/
