@@ -1,10 +1,13 @@
 import java.io.Serializable;
+import java.util.Comparator;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class MPacket implements Serializable, Comparable<MPacket> {
+public class MPacket implements Serializable {
 
     /*The following are the type of events*/
     public static final int HELLO = 100;
     public static final int ACTION = 200;
+    public static final int ACK = 200;
 
     /*The following are the specific action 
     for each type*/
@@ -38,6 +41,43 @@ public class MPacket implements Serializable, Comparable<MPacket> {
     public Player[] players;
 
     public Projectile prj;
+    
+    public VectorClock clock;
+    
+    public int originId = -1;
+    public int senderId = -1;
+    public int recvId = -1;
+	public int uniqId = -1;
+	
+	public ConcurrentHashMap<Integer, Boolean> acks = new ConcurrentHashMap<Integer, Boolean>();
+	
+    public static Comparator<MPacket> COMPARE_BY_SEQNO = new Comparator<MPacket>() {
+		@Override
+		public int compare(MPacket arg0, MPacket arg1) {
+			// TODO Auto-generated method stub
+			return (arg0.sequenceNumber < arg1.sequenceNumber) ? -1 : 1;
+		}
+    };
+
+    public static Comparator<MPacket> COMPARE_BY_CLOCK = new Comparator<MPacket>() {
+		@Override
+		public int compare(MPacket arg0, MPacket arg1) {
+			// TODO Auto-generated method stub
+			int compr = arg0.clock.compareTo(arg1.clock);
+			
+			if (compr == VectorClock.BEFORE) {
+				return -1;
+			}
+			else if (compr == VectorClock.AFTER) {
+				return 1;
+			}
+			
+			// if clocks are identical or concurrent, compare by pid
+			return (arg0.senderId < arg1.senderId) ? -1 : 1;
+		}
+    };
+    
+    public MPacket(){}
 
     public MPacket(int type, int event){
         this.type = type;
@@ -49,15 +89,46 @@ public class MPacket implements Serializable, Comparable<MPacket> {
         this.type = type;
         this.event = event;
     }
-
-    public MPacket(String name, int type, int event, Projectile prj){
-        this.name = name;
-        this.type = type;
-        this.event = event;
-        this.prj = prj; // Directed Projectile
-    }
+//
+//    public MPacket(String name, int type, int event, Projectile prj){
+//        this.name = name;
+//        this.type = type;
+//        this.event = event;
+//        this.prj = prj; // Directed Projectile
+//    }
     
-    public String toString(){
+    public MPacket(MPacket pkt) {
+		// TODO Auto-generated constructor stub
+    	this.name = pkt.name;
+        this.type = pkt.type;
+        this.event = pkt.event;
+        this.prj = pkt.prj; // Directed Projectile
+        
+        this.originId = pkt.originId;
+        this.senderId = pkt.senderId;
+        this.recvId = pkt.recvId;
+        this.uniqId = pkt.uniqId;
+        this.clock = pkt.clock;
+	}
+    
+    public void makeAckOf(MPacket pkt) {
+		// TODO Auto-generated constructor stub
+    	this.name = pkt.name;
+        this.type = MPacket.ACK;
+        this.event = pkt.event;
+        this.prj = pkt.prj; // Directed Projectile
+        
+        this.originId = pkt.originId;
+        
+        // switch receiver and sender
+        this.senderId = pkt.recvId;
+        this.recvId = pkt.senderId;
+        
+        this.uniqId = pkt.uniqId;
+        this.clock = pkt.clock;
+	}
+
+	public String toString(){
         String typeStr;
         String eventStr;
         
@@ -67,6 +138,9 @@ public class MPacket implements Serializable, Comparable<MPacket> {
                 break;
             case 200:
                 typeStr = "ACTION";
+                break;
+            case 300:
+                typeStr = "ACK";
                 break;
             default:
                 typeStr = "ERROR";
@@ -106,9 +180,10 @@ public class MPacket implements Serializable, Comparable<MPacket> {
             typeStr, eventStr, sequenceNumber);
         return retString;
     }
-    
-    public int compareTo(MPacket other) {
-    	return (sequenceNumber < other.sequenceNumber) ? -1 : 1;
-    }
-
+	
+	public boolean isAckFor(MPacket arg0) {
+		if (uniqId == arg0.uniqId && originId == arg0.originId)
+			return true;
+		return false;
+	}
 }

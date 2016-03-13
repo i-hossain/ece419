@@ -17,25 +17,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
 USA.
 */
   
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.JPanel;
-import javax.swing.JTable;
-import javax.swing.JOptionPane;
-import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
-import javax.swing.BorderFactory;
+import java.awt.GridBagLayout;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.net.Socket;
+import java.io.ObjectOutputStream;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextPane;
 
 /**
  * The entry point and glue code for the game.  It also contains some helpful
@@ -90,7 +87,8 @@ public class Mazewar extends JFrame {
         /**
          * A queue of events.
          */
-        private BlockingQueue eventQueue = null;
+//        private BlockingQueue eventQueue = null;
+        private BuffQueue bqs = null;
         
         /**
          * The panel that displays the {@link Maze}.
@@ -110,6 +108,8 @@ public class Mazewar extends JFrame {
         private static final JTextPane console = new JTextPane();
         
         private Map<Client, Projectile> myProjMap = new ConcurrentHashMap<Client, Projectile>();
+        
+        private VectorClock myClock = new VectorClock();
       
         /** 
          * Write a message to the console followed by a newline.
@@ -183,9 +183,14 @@ public class Mazewar extends JFrame {
                 MPacket resp = (MPacket)mSocket.readObject();
                 if(Debug.debug) System.out.println("Received response from server");
 
+                
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                
+                bqs = new BuffQueue();
+                
                 //Initialize queue of events
-                eventQueue = new LinkedBlockingQueue<MPacket>();
-                maze.addEventQueue(eventQueue);
+//                eventQueue = new LinkedBlockingQueue<MPacket>();
+                maze.addEventQueue(bqs.eventQueue);
                 
                 maze.addProjMap(myProjMap);
                 
@@ -197,7 +202,7 @@ public class Mazewar extends JFrame {
                 for(Player player: resp.players){  
                         if(player.name.equals(name)){
                         	if(Debug.debug)System.out.println("Adding guiClient: " + player);
-                                guiClient = new GUIClient(name, eventQueue, myProjMap);
+                                guiClient = new GUIClient(name, bqs.eventQueue, myProjMap);
                                 maze.addClientAt(guiClient, player.point, player.direction);
                                 this.addKeyListener(guiClient);
                                 clientTable.put(player.name, guiClient);
@@ -289,10 +294,15 @@ public class Mazewar extends JFrame {
          listening for events
         */
         private void startThreads(){
-                //Start a new sender thread 
-                new Thread(new ClientSenderThread(mSocket, eventQueue)).start();
-                //Start a new listener thread 
-                new Thread(new ClientListenerThread(mSocket, clientTable)).start();    
+        	for(Entry<String, Client> entry : clientTable.entrySet()) {  
+        		if(entry.getValue() instanceof GUIClient) {
+        			// its our local client
+        			//Start a new sender thread 
+                    new Thread(new ClientSenderThread(Integer.parseInt(entry.getKey()), myClock, bqs)).start();
+        		}
+        		//Start a new listener thread 
+                new Thread(new ClientListenerThread(Integer.parseInt(entry.getKey()), myClock, bqs)).start(); 
+	        } 
         }
 
         
