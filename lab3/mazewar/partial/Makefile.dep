@@ -331,7 +331,7 @@ RobotClient.class : Direction.java
 RobotClient.class : Direction.class
 RobotClient.class : ClientEvent.java
 RobotClient.class : ClientEvent.class
-Server.class:Server.java
+Server.class:Server1.java
 Server.class:MPacket.java
 Server.class:MPacket.class
 Server.class:ServerListenerThread.java

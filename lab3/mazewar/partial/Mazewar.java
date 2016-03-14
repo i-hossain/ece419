@@ -22,6 +22,8 @@ import java.awt.GridBagLayout;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -149,7 +151,7 @@ public class Mazewar extends JFrame {
         /** 
          * The place where all the pieces are put together. 
          */
-        public Mazewar(String serverHost, int serverPort) throws IOException,
+        public Mazewar(String serverHost, int serverPort, int clientPort) throws IOException,
                                                 ClassNotFoundException {
                 super("ECE419 Mazewar");
                 consolePrintLn("ECE419 Mazewar started!");
@@ -170,18 +172,36 @@ public class Mazewar extends JFrame {
                   Mazewar.quit();
                 }
                 
-                mSocket = new MSocket(serverHost, serverPort);
-                //Send hello packet to server
+                // mSocket = new MSocket(serverHost, serverPort);
+                // //Send hello packet to server
+                // MPacket hello = new MPacket(name, MPacket.HELLO, MPacket.HELLO_INIT);
+                // hello.mazeWidth = mazeWidth;
+                // hello.mazeHeight = mazeHeight;
+                
+                // if(Debug.debug) System.out.println("Sending hello");
+                // mSocket.writeObject(hello);
+                // if(Debug.debug) System.out.println("hello sent");
+                // //Receive response from server
+                // MPacket resp = (MPacket)mSocket.readObject();
+                // if(Debug.debug) System.out.println("Received response from server");
+
+                Socket socket = new Socket(serverHost, serverPort);
+                out = new ObjectOutputStream(socket.getOutputStream());
+                in = new ObjectInputStream(socket.getInputStream());
                 MPacket hello = new MPacket(name, MPacket.HELLO, MPacket.HELLO_INIT);
                 hello.mazeWidth = mazeWidth;
                 hello.mazeHeight = mazeHeight;
+                hello.port = clientPort;
                 
                 if(Debug.debug) System.out.println("Sending hello");
-                mSocket.writeObject(hello);
-                if(Debug.debug) System.out.println("hello sent");
-                //Receive response from server
-                MPacket resp = (MPacket)mSocket.readObject();
-                if(Debug.debug) System.out.println("Received response from server");
+	            out.writeObject(hello);
+	            if(Debug.debug) System.out.println("hello sent");
+	            //Receive response from server
+	            MPacket resp = (MPacket)in.readObject();
+	            if(Debug.debug) System.out.println("Received response from server");
+
+                
+                
 
                 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -315,8 +335,9 @@ public class Mazewar extends JFrame {
 
              String host = args[0];
              int port = Integer.parseInt(args[1]);
+             int clientport = Integer.parseInt(args[2]);
              /* Create the GUI */
-             Mazewar mazewar = new Mazewar(host, port);
+             Mazewar mazewar = new Mazewar(host, port, clientport);
              mazewar.startThreads();
         }
 }

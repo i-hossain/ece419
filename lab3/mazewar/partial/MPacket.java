@@ -39,6 +39,9 @@ public class MPacket implements Serializable {
     public int mazeHeight;
     public int mazeWidth; 
     public Player[] players;
+    
+    public int port;
+    public ClientData[] clientData;
 
     public Projectile prj;
     
