@@ -35,13 +35,17 @@ public class ClientSocket {
 	}
 	
 	public Object readObject() {
-		try {
-			return in.readObject();
-		} catch (ClassNotFoundException | IOException e) {
+			try {
+				return in.readObject();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+			return null;
 	}
 	
 	public InetAddress getIP() {

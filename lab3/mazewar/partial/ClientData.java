@@ -5,7 +5,10 @@ public class ClientData implements Serializable {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -1978215476117774794L;
+	private static final long serialVersionUID = 1L;
+	/**
+	 * 
+	 */
 	String name;
 	int pid;
 	InetAddress ipAddr;

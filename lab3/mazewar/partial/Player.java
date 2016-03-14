@@ -1,7 +1,11 @@
 import java.io.Serializable;
 
 public class Player implements Serializable {
-    //Need these because direction is not serializable
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4069981158275080271L;
+	//Need these because direction is not serializable
     public final static int North = 0;
     public final static int South = 1;
     public final static int East  = 2;

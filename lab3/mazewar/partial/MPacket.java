@@ -4,7 +4,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MPacket implements Serializable {
 
-    /*The following are the type of events*/
+	/*The following are the type of events*/
     public static final int HELLO = 100;
     public static final int ACTION = 200;
     public static final int ACK = 200;
