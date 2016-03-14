@@ -48,7 +48,7 @@ public class ClientListenerThread implements Runnable {
             			
         				if (head.sequenceNumber == mySeqNo.intValue()) {
         					// packet is next (this is to ensure FIFO)
-        					Debug.log(TAG, "Received " + head);
+//        					Debug.log(TAG, "Received " + head);
 
         					// merge vector clock and increment my clock
         					myClk.mergeFrom(head.clock);
@@ -124,7 +124,7 @@ public class ClientListenerThread implements Runnable {
                 while(true){
                     try{
                         received = (MPacket) mSocket.readObject();
-//                        Debug.log(TAG, "Queueing Received " + received);
+                        Debug.log(TAG, "Queueing Received " + received);
                     	// Enqueue
                     	clientQueue.put(received);
                     }catch(IOException e){

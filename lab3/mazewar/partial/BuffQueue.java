@@ -28,4 +28,6 @@ public class BuffQueue {
 	public ClientData [] cData;
 	
 	public int myPid;
+	
+	public ConcurrentHashMap<Integer, Retransmitter> resendTimers = new ConcurrentHashMap<Integer, Retransmitter>();
 }

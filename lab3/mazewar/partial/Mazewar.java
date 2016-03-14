@@ -206,7 +206,7 @@ public class Mazewar extends JFrame {
                 		MSocket mSocket = null;
                 		MPacket rPack = null;
                 		
-                		while (bqs.socketMap.size() < MIN_OTHER_CLIENTS) {
+                		while (true) {
 							try {
 								mSocket = clientSock.accept();
 								rPack = (MPacket)mSocket.readObject();
@@ -219,6 +219,11 @@ public class Mazewar extends JFrame {
 							}
 	                		
 	                		bqs.socketMap.put(rPack.pid, mSocket);
+	                		bqs.recvSeqNo.put(rPack.pid, new AtomicInteger(1));
+	                		bqs.sendSeqNo.put(rPack.pid, new AtomicInteger(1));
+	                		
+	                		//Start a new listener thread 
+//	                        new Thread(new ClientListenerThread(rPack.pid, myClock, bqs)).start();
                 		}
                 	}
                 };
@@ -248,24 +253,35 @@ public class Mazewar extends JFrame {
                 Debug.log(TAG, Arrays.toString(resp.clientData));
                 
                 for (int i = 0; i < resp.clientData.length; i++) {
-                	if (resp.clientData[i].name.equals(name))
+                	if (resp.clientData[i].name.equals(name)) {
                 		bqs.myPid = resp.clientData[i].pid;
+                		break;
+                	}
                 }
                 
-                for (int i = bqs.myPid - 1; i >= 0 ; i--) {             	
-                	MSocket cSocket = new MSocket(resp.clientData[i].host, resp.clientData[i].port);
+                ClientData ccd;
+                for (int i = bqs.myPid - 1; i >= 0 ; i--) {   
+                	ccd = resp.clientData[i];
+                	MSocket cSocket = new MSocket(ccd.host, ccd.port);
                 	cSocket.writeObject(new MPacket(MPacket.HELLO, MPacket.HELLO_WORLD, bqs.myPid));
-                	Debug.log(TAG, "Adding " + resp.clientData[i].pid);
-                	bqs.socketMap.put(resp.clientData[i].pid, cSocket);
+                	Debug.log(TAG, "Initializing " + ccd.pid);
+                	
+                	// init bqs data structures
+                	bqs.socketMap.put(ccd.pid, cSocket);
+                	bqs.recvSeqNo.put(ccd.pid, new AtomicInteger(1));
+        			bqs.sendSeqNo.put(ccd.pid, new AtomicInteger(1));
+        			
+        			//Start a new listener thread 
+//                    new Thread(new ClientListenerThread(ccd.pid, myClock, bqs)).start(); 
                 }
                 
                 while (bqs.socketMap.size() < MIN_OTHER_CLIENTS);
                 
-                for(Integer pid : bqs.socketMap.keySet()) {
-                	Debug.log(TAG, "init: " + pid);
-                	bqs.recvSeqNo.put(pid, new AtomicInteger(1));
-        			bqs.sendSeqNo.put(pid, new AtomicInteger(1));
-                }
+//                for(Integer pid : bqs.socketMap.keySet()) {
+//                	Debug.log(TAG, "init: " + pid);
+//                	bqs.recvSeqNo.put(pid, new AtomicInteger(1));
+//        			bqs.sendSeqNo.put(pid, new AtomicInteger(1));
+//                }
                 
                 bqs.recvSeqNo.put(bqs.myPid, new AtomicInteger(1));
     			bqs.sendSeqNo.put(bqs.myPid, new AtomicInteger(1));
@@ -380,7 +396,7 @@ public class Mazewar extends JFrame {
         		if(c.pid == bqs.myPid) {
         			// its our local client
         			//Start a new sender thread 
-                    new Thread(new ClientSenderThread(c.pid, myClock, bqs)).start();
+                    new Thread(new ClientSenderThread(bqs.myPid, myClock, bqs)).start();
         		}
         		//Start a new listener thread 
                 new Thread(new ClientListenerThread(c.pid, myClock, bqs)).start(); 
