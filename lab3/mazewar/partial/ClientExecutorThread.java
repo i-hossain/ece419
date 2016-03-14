@@ -21,11 +21,12 @@ public class ClientExecutorThread implements Runnable {
     	Client client = null;
     	while(true){
     		head = bqs.recvQueue.peek();
-    		if (head != null && head.acks.size() == bqs.otherClients.size()) {
+    		if (head != null && head.acks.size() == bqs.cData.length) {
     			//packet is ready to be executed :)
     			bqs.recvQueue.remove(head);
     			
     			// Execute the action
+    			Debug.log(TAG, "Executing " + head);
     			client = clientTable.get(head.name);
     			executeAction(client, head);
     		}

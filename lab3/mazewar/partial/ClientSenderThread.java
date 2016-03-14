@@ -1,5 +1,3 @@
-import java.util.Hashtable;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClientSenderThread implements Runnable {
@@ -27,10 +25,9 @@ public class ClientSenderThread implements Runnable {
             try{                
                 //Take packet from queue
                 toServer = (MPacket) bqs.eventQueue.take();
-                Debug.log(TAG, "Sending " + toServer);
                 
                 // Incr vector clock before sending
-                myClk.incr(toServer.senderId);
+                myClk.incr(myID);
 				VectorClock vClone = myClk.clone();
 				
 				toServer.clock = vClone;
@@ -39,7 +36,7 @@ public class ClientSenderThread implements Runnable {
 				if (toServer.originId == -1 || toServer.senderId == -1 || toServer.uniqId == -1) {
 					toServer.originId = myID;
 					toServer.senderId = myID;
-					toServer.uniqId = uniqueIdentifier++;
+					toServer.uniqId = ++uniqueIdentifier;
 				}
 				
 				if (toServer.recvId == -1) {
@@ -63,10 +60,10 @@ public class ClientSenderThread implements Runnable {
 		MPacket toSend;
 		
 		// Send to clients
-		for (Integer cID : bqs.otherClients.keySet()) {
+		for (ClientData cD : bqs.cData) {
 			// timestamp message with local vector
 			toSend = new MPacket(pkt);
-			toSend.recvId = cID;
+			toSend.recvId = cD.pid;
 			sequencePacket(toSend);
 		}
 	}
@@ -78,6 +75,8 @@ public class ClientSenderThread implements Runnable {
 		AtomicInteger mySeqNo = bqs.sendSeqNo.get(pkt.recvId);
 		
 		pkt.sequenceNumber = mySeqNo.intValue();
+		
+		Debug.log(TAG, "Sending " + pkt);
 		
 		// send the packet
 		if (pkt.recvId == myID) {

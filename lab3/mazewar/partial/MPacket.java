@@ -11,7 +11,7 @@ public class MPacket implements Serializable {
 	/*The following are the type of events*/
     public static final int HELLO = 100;
     public static final int ACTION = 200;
-    public static final int ACK = 200;
+    public static final int ACK = 300;
 
     /*The following are the specific action 
     for each type*/
@@ -130,7 +130,7 @@ public class MPacket implements Serializable {
     public void makeAckOf(MPacket pkt) {
 		// TODO Auto-generated constructor stub
     	this.name = pkt.name;
-        this.type = MPacket.ACK;
+        this.type = ACK;
         this.event = pkt.event;
         this.prj = pkt.prj; // Directed Projectile
         
@@ -188,12 +188,12 @@ public class MPacket implements Serializable {
                 eventStr = "MP";
                 break;
             default:
-                eventStr = event + "";
+                eventStr = "ERROR";
                 break;        
         }
         //MPACKET(NAME: name, <typestr: eventStr>, SEQNUM: sequenceNumber)
-        String retString = String.format("MPACKET(NAME: %s, <%s: %s>, SEQNUM: %s) - %d", name, 
-            typeStr, eventStr, sequenceNumber, pid);
+        String retString = String.format("MPACKET(NAME: %s, <%s: %s>, SEQNUM: %s) - %s", name, 
+            typeStr, eventStr, sequenceNumber, stringify());
         return retString;
     }
 	
@@ -201,5 +201,10 @@ public class MPacket implements Serializable {
 		if (uniqId == arg0.uniqId && originId == arg0.originId)
 			return true;
 		return false;
+	}
+	
+	public String stringify() {
+		return "oid: " + originId + " uniq: " + uniqId + " id: " + senderId + " rid: " + recvId + " -> "
+				+ " << " + ((clock != null)?clock.toString():"") + " >>";
 	}
 }

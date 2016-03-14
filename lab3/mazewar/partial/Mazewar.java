@@ -30,6 +30,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -48,7 +49,7 @@ import javax.swing.JTextPane;
 public class Mazewar extends JFrame {
 	
 	private final String TAG = this.getClass().getSimpleName();
-		public static final int MIN_OTHER_CLIENTS = 3;
+		public static final int MIN_OTHER_CLIENTS = 1;
 
         /**
          * The default width of the {@link Maze}.
@@ -261,8 +262,13 @@ public class Mazewar extends JFrame {
                 while (bqs.socketMap.size() < MIN_OTHER_CLIENTS);
                 
                 for(Integer pid : bqs.socketMap.keySet()) {
-                	Debug.log(TAG, "got: " + pid);
+                	Debug.log(TAG, "init: " + pid);
+                	bqs.recvSeqNo.put(pid, new AtomicInteger(1));
+        			bqs.sendSeqNo.put(pid, new AtomicInteger(1));
                 }
+                
+                bqs.recvSeqNo.put(bqs.myPid, new AtomicInteger(1));
+    			bqs.sendSeqNo.put(bqs.myPid, new AtomicInteger(1));
                 
                 //Initialize queue of events
 //                eventQueue = new LinkedBlockingQueue<MPacket>();
@@ -370,15 +376,17 @@ public class Mazewar extends JFrame {
          listening for events
         */
         private void startThreads(){
-        	for(Entry<String, Client> entry : clientTable.entrySet()) {  
-        		if(entry.getValue() instanceof GUIClient) {
+        	for(ClientData c : bqs.cData) {  
+        		if(c.pid == bqs.myPid) {
         			// its our local client
         			//Start a new sender thread 
-                    new Thread(new ClientSenderThread(Integer.parseInt(entry.getKey()), myClock, bqs)).start();
+                    new Thread(new ClientSenderThread(c.pid, myClock, bqs)).start();
         		}
         		//Start a new listener thread 
-                new Thread(new ClientListenerThread(Integer.parseInt(entry.getKey()), myClock, bqs)).start(); 
+                new Thread(new ClientListenerThread(c.pid, myClock, bqs)).start(); 
 	        } 
+        	
+        	new Thread(new ClientExecutorThread(clientTable, bqs)).start(); 
         }
 
         
@@ -394,6 +402,6 @@ public class Mazewar extends JFrame {
              int clientport = Integer.parseInt(args[2]);
              /* Create the GUI */
              Mazewar mazewar = new Mazewar(host, port, clientport);
-//             mazewar.startThreads();
+             mazewar.startThreads();
         }
 }

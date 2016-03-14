@@ -1,10 +1,6 @@
 import java.io.IOException;
 import java.io.InvalidObjectException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -14,7 +10,7 @@ public class NameServer {
     
 	//The maximum of clients that will join
 	//Server waits until the max number of clients to join 
-    public static final int MIN_CLIENTS = 4;
+    public static final int MIN_CLIENTS = 2;
 //    private MServerSocket mServerSocket = null;
     private int clientCount; //The number of clients before game starts
     private static int PORT = 5555; //Default port

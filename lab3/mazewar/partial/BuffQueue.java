@@ -19,7 +19,7 @@ public class BuffQueue {
 	
 	public PriorityBlockingQueue<MPacket> recvPackets = new PriorityBlockingQueue<MPacket>(BuffQueue.INIT_CAPACITY, MPacket.COMPARE_BY_SEQNO);
 	
-	public ConcurrentHashMap<Integer, Client> otherClients;
+//	public ConcurrentHashMap<Integer, Client> otherClients;
 	
 	public ConcurrentHashMap<Integer, MSocket> socketMap = new ConcurrentHashMap<Integer, MSocket>();
 	

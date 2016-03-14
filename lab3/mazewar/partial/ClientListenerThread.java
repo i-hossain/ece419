@@ -22,10 +22,10 @@ public class ClientListenerThread implements Runnable {
         this.peerId = peerId;
         this.myClk = myClock;
         this.bqs = buffers;
-        this.mSocket = bqs.socketMap.get(peerId);
-        
-        if (this.mSocket != null)
+        if (peerId != bqs.myPid) {
+        	this.mSocket = bqs.socketMap.get(peerId);
         	this.clientQueue = new PriorityBlockingQueue<MPacket>(BuffQueue.INIT_CAPACITY, MPacket.COMPARE_BY_SEQNO);
+        }
         else
         	this.clientQueue = bqs.recvPackets;
     }
@@ -45,9 +45,10 @@ public class ClientListenerThread implements Runnable {
             		head = clientQueue.peek();
             		
             		if (head != null) {
-        				
+            			
         				if (head.sequenceNumber == mySeqNo.intValue()) {
         					// packet is next (this is to ensure FIFO)
+        					Debug.log(TAG, "Received " + head);
 
         					// merge vector clock and increment my clock
         					myClk.mergeFrom(head.clock);
@@ -68,7 +69,7 @@ public class ClientListenerThread implements Runnable {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
-        						bqs.recvQueue.add(temp);
+        						bqs.recvQueue.add(head);
         						mySeqNo.incrementAndGet();
         						
         					} else if (head.type == MPacket.ACK) {
@@ -96,12 +97,12 @@ public class ClientListenerThread implements Runnable {
         						// ACK was probably lost
         						temp = new MPacket();
         						temp.makeAckOf(head);
-        						try {
-        							bqs.eventQueue.put(temp);
-								} catch (InterruptedException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
+//        						try {
+//        							bqs.eventQueue.put(temp);
+//								} catch (InterruptedException e) {
+//									// TODO Auto-generated catch block
+//									e.printStackTrace();
+//								}
         						
         					} else if (head.type == MPacket.ACK) {
         						// ack was retransmitted. drop it
@@ -123,7 +124,7 @@ public class ClientListenerThread implements Runnable {
                 while(true){
                     try{
                         received = (MPacket) mSocket.readObject();
-                        Debug.log(TAG, "Queueing Received " + received);
+//                        Debug.log(TAG, "Queueing Received " + received);
                     	// Enqueue
                     	clientQueue.put(received);
                     }catch(IOException e){
