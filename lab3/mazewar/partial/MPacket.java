@@ -4,6 +4,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MPacket implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5913173889848141808L;
 	/*The following are the type of events*/
     public static final int HELLO = 100;
     public static final int ACTION = 200;
