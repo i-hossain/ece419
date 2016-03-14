@@ -64,7 +64,7 @@ public class NameServer {
                 Player player = new Player(hello.name, point, Player.North);
                 players[i] = player;
                 
-                cData[i] = new ClientData(hello.name, i, socketList[i].getIP(), hello.port);
+                cData[i] = new ClientData(hello.name, i, socketList[i].getIP().getHostName(), hello.port);
             }
             
             hello.event = MPacket.HELLO_RESP;
@@ -76,10 +76,10 @@ public class NameServer {
             
             Debug.log(TAG, "Sending " + Arrays.toString(cData));
             
-//            for(ClientSocket cSock : socketList) {
-////            	cSock.writeObject(hello);
-//            	//Debug.log(TAG, )
-//            }
+            for(ClientSocket cSock : socketList) {
+            	cSock.writeObject(hello);
+            	//Debug.log(TAG, )
+            }
         } catch(IOException e){
             e.printStackTrace();
             Thread.currentThread().interrupt();

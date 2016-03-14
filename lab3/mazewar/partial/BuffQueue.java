@@ -24,4 +24,8 @@ public class BuffQueue {
 	public ConcurrentHashMap<Integer, MSocket> socketMap = new ConcurrentHashMap<Integer, MSocket>();
 	
 	public BlockingQueue<MPacket> eventQueue = new LinkedBlockingQueue<MPacket>();
+	
+	public ClientData [] cData;
+	
+	public int myPid;
 }

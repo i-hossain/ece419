@@ -19,6 +19,8 @@ public class MPacket implements Serializable {
     public static final int HELLO_INIT = 101;
     /*Response to Hello*/
     public static final int HELLO_RESP = 102;
+    
+    public static final int HELLO_WORLD = 103;
 
     /*Action*/
     public static final int UP = 201;
@@ -46,6 +48,7 @@ public class MPacket implements Serializable {
     
     public int port;
     public ClientData[] clientData;
+    public int pid;
 
     public Projectile prj;
     
@@ -89,6 +92,12 @@ public class MPacket implements Serializable {
     public MPacket(int type, int event){
         this.type = type;
         this.event = event;
+    }
+    
+    public MPacket(int type, int event, int pid){
+        this.type = type;
+        this.event = event;
+        this.pid = pid;
     }
     
     public MPacket(String name, int type, int event){
@@ -179,12 +188,12 @@ public class MPacket implements Serializable {
                 eventStr = "MP";
                 break;
             default:
-                eventStr = "ERROR";
+                eventStr = event + "";
                 break;        
         }
         //MPACKET(NAME: name, <typestr: eventStr>, SEQNUM: sequenceNumber)
-        String retString = String.format("MPACKET(NAME: %s, <%s: %s>, SEQNUM: %s)", name, 
-            typeStr, eventStr, sequenceNumber);
+        String retString = String.format("MPACKET(NAME: %s, <%s: %s>, SEQNUM: %s) - %d", name, 
+            typeStr, eventStr, sequenceNumber, pid);
         return retString;
     }
 	

@@ -24,6 +24,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,6 +46,9 @@ import javax.swing.JTextPane;
  */
 
 public class Mazewar extends JFrame {
+	
+	private final String TAG = this.getClass().getSimpleName();
+		public static final int MIN_OTHER_CLIENTS = 3;
 
         /**
          * The default width of the {@link Maze}.
@@ -185,6 +190,40 @@ public class Mazewar extends JFrame {
                 // MPacket resp = (MPacket)mSocket.readObject();
                 // if(Debug.debug) System.out.println("Received response from server");
 
+                
+                
+                //Establish serversock and wait for connections. This is done before sending a hello packet to ensure that the clients are listening on open ports
+                //or else it could run into race condition  if a client tries to establish a connection to a host that hasn't opened a socket yet.
+                
+                final int cPort = clientPort;
+                bqs = new BuffQueue();
+                
+                Thread t = new Thread() {
+	            	MServerSocket clientSock = new MServerSocket(cPort);
+	            	
+                	public void run() {
+                		MSocket mSocket = null;
+                		MPacket rPack = null;
+                		
+                		while (bqs.socketMap.size() < MIN_OTHER_CLIENTS) {
+							try {
+								mSocket = clientSock.accept();
+								rPack = (MPacket)mSocket.readObject();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (ClassNotFoundException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+	                		
+	                		bqs.socketMap.put(rPack.pid, mSocket);
+                		}
+                	}
+                };
+                
+                t.start();
+                
                 Socket socket = new Socket(serverHost, serverPort);
                 out = new ObjectOutputStream(socket.getOutputStream());
                 in = new ObjectInputStream(socket.getInputStream());
@@ -201,12 +240,29 @@ public class Mazewar extends JFrame {
 	            if(Debug.debug) System.out.println("Received response from server");
 
                 
-                
-
-                
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                bqs.cData = resp.clientData;
                 
-                bqs = new BuffQueue();
+                Debug.log(TAG, Arrays.toString(resp.clientData));
+                
+                for (int i = 0; i < resp.clientData.length; i++) {
+                	if (resp.clientData[i].name.equals(name))
+                		bqs.myPid = resp.clientData[i].pid;
+                }
+                
+                for (int i = bqs.myPid - 1; i >= 0 ; i--) {             	
+                	MSocket cSocket = new MSocket(resp.clientData[i].host, resp.clientData[i].port);
+                	cSocket.writeObject(new MPacket(MPacket.HELLO, MPacket.HELLO_WORLD, bqs.myPid));
+                	Debug.log(TAG, "Adding " + resp.clientData[i].pid);
+                	bqs.socketMap.put(resp.clientData[i].pid, cSocket);
+                }
+                
+                while (bqs.socketMap.size() < MIN_OTHER_CLIENTS);
+                
+                for(Integer pid : bqs.socketMap.keySet()) {
+                	Debug.log(TAG, "got: " + pid);
+                }
                 
                 //Initialize queue of events
 //                eventQueue = new LinkedBlockingQueue<MPacket>();
@@ -338,6 +394,6 @@ public class Mazewar extends JFrame {
              int clientport = Integer.parseInt(args[2]);
              /* Create the GUI */
              Mazewar mazewar = new Mazewar(host, port, clientport);
-             mazewar.startThreads();
+//             mazewar.startThreads();
         }
 }
