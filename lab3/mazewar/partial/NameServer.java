@@ -10,7 +10,7 @@ public class NameServer {
     
 	//The maximum of clients that will join
 	//Server waits until the max number of clients to join 
-    public static final int MIN_CLIENTS = 2;
+    public static final int MIN_CLIENTS = 4;
 //    private MServerSocket mServerSocket = null;
     private int clientCount; //The number of clients before game starts
     private static int PORT = 5555; //Default port
@@ -72,8 +72,9 @@ public class NameServer {
             
             Debug.log(TAG, "Sending " + Arrays.toString(cData));
             
-            for(ClientSocket cSock : socketList) {
-            	cSock.writeObject(hello);
+            for(int i = 0; i < socketList.length; i++) {
+            	hello.pid = i;
+            	socketList[i].writeObject(hello);
             	//Debug.log(TAG, )
             }
         } catch(IOException e){
