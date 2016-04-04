@@ -1,14 +1,12 @@
 import java.lang.management.ManagementFactory;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.KeeperException.Code;
-import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.data.Stat;
+import org.apache.zookeeper.Watcher.Event.EventType;
 
 
 public class Worker {
@@ -19,6 +17,8 @@ public class Worker {
     Watcher watcher;
 	private String member;
     public static final String TASK_ACCEPTED = "accepted";
+    
+    CountDownLatch trackerCreated = new CountDownLatch(1);
     
     public static void main(String[] args) {    	
     	if (args.length != 1) {
@@ -34,11 +34,11 @@ public class Worker {
     private void start() {
 		// TODO Auto-generated method stub
     	String path = zkc.createPath(GROUP);
-    	try {
-			zkc.createGroup(path, null, null);
-			String memberPath = zkc.appendPath(path, member);
-			zkc.joinGroup(memberPath, null, null);
-			
+    	zkc.createzDaGroupz(path, null, null);
+    	String memberPath = zkc.appendPath(path, member);
+		zkc.joinzDaGroupz(memberPath, null, null);
+		
+		try {
 			workForever();
 		} catch (KeeperException | InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -48,18 +48,15 @@ public class Worker {
 
 	public Worker(String hosts) {
         zkc = new ZkConnector();
-        try {
-            zkc.connect(hosts);
-        } catch(Exception e) {
-            System.out.println("Zookeeper connect "+ e.getMessage());
-        }
+        zkc.connect(hosts);
         
         watcher = new Watcher() {
             @Override
             public void process(WatchedEvent event) {
-                if (event.getType() == Event.EventType.NodeChildrenChanged) {
+//                if (event.getType() == EventType.NodeChildrenChanged ||
+//                		event.getType() == EventType.NodeDeleted) {
                     sem.release();
-                }
+//                }
             }
         };
         
@@ -70,17 +67,29 @@ public class Worker {
     }
     
     public void workForever() throws KeeperException, InterruptedException {
-    	String path = zkc.createPath(JobTracker.TASK_GROUP);;
+    	String path = zkc.createPath(JobTracker.TASK_GROUP);
+    	zkc.createzDaGroupz(path, null, null);
+    	
+    	// wait for job trackers to start
+//    	Stat s = zkc.exists(path, new Watcher() {
+//								@Override
+//								public void process(WatchedEvent event) {
+//									// TODO Auto-generated method stub
+//									trackerCreated.countDown();
+//								}	
+//					    	});
+//    	if (s == null)
+//    		trackerCreated.await();
     	
     	
-    	sem.acquire();
-        while (true) {
-        	//zkc.listChildren(path, watcher);
-        	List<String> children = zkc.getZooKeeper().getChildren(path, watcher);
+        do {
+        	sem.acquire();
         	
-        	for (String taskHash : children) {
-        		// we have some tasks
-        		try {
+        	try {        		
+	        	List<String> children = zkc.getZooKeeper().getChildren(path, watcher);
+	        	
+	        	for (String taskHash : children) {
+        			// we have some tasks
 	        		String taskPath = zkc.appendPath(path, taskHash);
 
         			List<String> taskParts = zkc.getZooKeeper().getChildren(taskPath, watcher);
@@ -90,24 +99,22 @@ public class Worker {
             			String acqPath = zkc.appendPath(taskPath, partition);
             			if(takeTask(acqPath)) {
             				// we have taken the task
+            				System.out.println("We took " + acqPath);
             				// now do stuff
-            				Boolean result = doTask(taskHash, Integer.parseInt(partition));
-            				zkc.getZooKeeper().setData(acqPath, result.toString().getBytes(), -1);
+            				String result = doTask(taskHash, Integer.parseInt(partition));
+            				zkc.getZooKeeper().setData(acqPath, result.getBytes(), -1);
             				releaseTask(acqPath);
             			}
             		}
-
-        		} catch (KeeperException e) {
-    				// TODO Auto-generated catch block
-    				// ignore no node exception
-        			System.out.println("EXCEPTION: " + e.getMessage());
-        			if (e.getMessage() != "NONODE")
-        				e.printStackTrace();
-    			}
-        	}
-        	
-            sem.acquire();
-        }
+	        	}
+        	} catch (KeeperException e) {
+				// TODO Auto-generated catch block
+				// ignore no node exception
+    			//System.out.println("EXCEPTION: " + e.getMessage());
+        		e.printStackTrace();
+        		sem.release();
+			}
+        } while (true);
     }
     
     private void releaseTask(String acqPath) throws KeeperException, InterruptedException {
@@ -117,14 +124,14 @@ public class Worker {
 
 	private boolean takeTask(String acqPath) throws KeeperException, InterruptedException {
     	String acceptTaskPath = zkc.appendPath(acqPath, TASK_ACCEPTED);
-    	byte [] taskstatus = zkc.getZooKeeper().getData(acceptTaskPath, false, null);
+    	byte [] taskstatus = zkc.getZooKeeper().getData(acqPath, false, null);
     	if (taskstatus == null)
     		return zkc.joinGroup(acceptTaskPath, null, null);
     	else
     		return false;
     }
     
-    private boolean doTask(String hash, Integer partition) {
-        return true; 
+    private String doTask(String hash, Integer partition) {
+        return "SUCCESS" + "-" + "r41nb0w"; 
     }
 }

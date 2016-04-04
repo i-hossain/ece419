@@ -1,17 +1,29 @@
+import java.io.IOException;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import org.apache.zookeeper.KeeperException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.EventType;
 
 
 public class JobTracker {
 	public ZkConnector zkc;
+	public static final String TRACKER = "tracker";
 	public static final String TASK_GROUP = "tasks";
 	public static int NUM_DICT_PART = 10;
 	
-	private byte [] false_bytes = (new Boolean(false)).toString().getBytes();
-	private byte [] true_bytes = (new Boolean(true)).toString().getBytes();
+	private Watcher watcher;
+	
+	private String trackerData = "";
+	private ServerSocket myServerSock;
+	private String tasksPath;
+	
+	ExecutorService executor = Executors.newCachedThreadPool();
 	
 	public static void main(String[] args) {    	
     	if (args.length != 1) {
@@ -20,49 +32,69 @@ public class JobTracker {
         }
     	
     	JobTracker jt = new JobTracker(args[0]);
-    	
     	jt.start();
     }
     
     private void start() {
 		// TODO Auto-generated method stub
-    	String tasksPath = "";
-    	try {
-			tasksPath = zkc.createGroup("", TASK_GROUP);
-		} catch (KeeperException | InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+    	String trackerPath = zkc.createPath(TRACKER);
+    	zkc.joinzDaGroupz(trackerPath, trackerData, watcher);
+    	
+    	tasksPath = zkc.createPath(TASK_GROUP);
+    	zkc.createzDaGroupz(tasksPath, null, null);
     	
     	// get hash of a word
     	String word = "r41nb0w";
         String hash = getHash(word);
         System.out.println(hash);
         
-        String hashPath = "";
-    	try {
-			hashPath = zkc.createGroup(tasksPath, hash);
-			
-			for(int i = 1; i < NUM_DICT_PART; i++) {
-	    		String tpath = zkc.createGroup(hashPath, String.valueOf(i));
-	    		new Thread(new ListGroupForever(zkc, tpath)).start();
-	    	}
-			
-		} catch (KeeperException | InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        String hashPath = zkc.appendPath(tasksPath, hash);
+		zkc.createzDaGroupz(hashPath, null, null);
+		executor.submit(new TaskHandler(zkc, hashPath));
+		
+		for(int i = 1; i <= NUM_DICT_PART; i++) {
+    		String tpath = zkc.appendPath(hashPath, String.valueOf(i));
+    		zkc.createzDaGroupz(tpath, null, null);
+//	    		new Thread(new ListGroupForever(zkc, tpath)).start();
+    	}
         
         while(true);
 	}
 
 	public JobTracker(String hosts) {
         zkc = new ZkConnector();
+        zkc.connect(hosts);
+        
         try {
-            zkc.connect(hosts);
-        } catch(Exception e) {
-            System.out.println("Zookeeper connect "+ e.getMessage());
-        }
+			myServerSock = new ServerSocket(0);
+			trackerData = InetAddress.getLocalHost().toString().split("/")[1] + ":" + myServerSock.getLocalPort();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        
+        System.out.println(trackerData);
+        
+        watcher = new Watcher() { // Anonymous Watcher
+            @Override
+            public void process(WatchedEvent event) {
+            	String path = event.getPath();
+                EventType type = event.getType();
+                String myPath = zkc.createPath(TRACKER);
+                
+                if(path.equalsIgnoreCase(myPath)) {
+                    if (type == EventType.NodeDeleted) {
+                        System.out.println(myPath + " deleted! Let's go!");       
+                        zkc.joinzDaGroupz(myPath, trackerData, watcher);
+                    }
+                    if (type == EventType.NodeCreated) {
+                        System.out.println(myPath + " created!");
+                        try{ Thread.sleep(5000); } catch (Exception e) {}
+                        zkc.joinzDaGroupz(myPath, trackerData, watcher);
+                    }
+                }
+        
+            } };
     }
     
     public static String getHash(String word) {

@@ -32,13 +32,17 @@ public class ZkConnector implements Watcher {
     /**
      * Connects to ZooKeeper servers specified by hosts.
      */
-    public void connect(String hosts) throws IOException, InterruptedException {
-
-        zooKeeper = new ZooKeeper(
-                hosts, // ZooKeeper service hosts
-                5000,  // Session timeout in milliseconds
-                this); // watcher - see process method for callbacks
-	    connectedSignal.await();
+    public void connect(String hosts) {
+	    try {
+	    	zooKeeper = new ZooKeeper(
+	                hosts, // ZooKeeper service hosts
+	                5000,  // Session timeout in milliseconds
+	                this); // watcher - see process method for callbacks
+			connectedSignal.await();
+		} catch (InterruptedException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     /**
@@ -125,6 +129,27 @@ public class ZkConnector implements Watcher {
     public boolean joinGroup(String path, String data, Watcher watch) throws KeeperException, InterruptedException {
     	// if the service dies then the service is automatically removed from the group
         return checkAndCreate(path, data, CreateMode.EPHEMERAL, watch);
+    }
+    
+    public boolean createzDaGroupz(String path, String data, Watcher watch) {
+        try {
+			return checkAndCreate(path, data, CreateMode.PERSISTENT, watch);
+		} catch (KeeperException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return false;
+    }
+    
+    public boolean joinzDaGroupz(String path, String data, Watcher watch) {
+    	// if the service dies then the service is automatically removed from the group
+        try {
+			return checkAndCreate(path, data, CreateMode.EPHEMERAL, watch);
+		} catch (KeeperException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return false;
     }
     
     public void leaveGroup(String path) throws KeeperException, InterruptedException {
