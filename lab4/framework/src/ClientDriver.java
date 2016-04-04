@@ -11,7 +11,7 @@ import org.apache.zookeeper.data.Stat;
 
 public class ClientDriver {
 
-	public static final String TRACKER = "tracker";
+	public static final String TRACKER = "fileserver";
 	public static final String JOB = "job";
 	public static final String STATUS = "status";
 	public ZkConnector zkc;
@@ -51,27 +51,33 @@ public class ClientDriver {
 			}
 		}
 		
-		try {
-			byte [] taskstatus = zkc.getZooKeeper().getData(trackerPath, false, null);
-			
-			if (taskstatus != null) {
-	    		// task is done
-	    		ipResult = (new String(taskstatus, "UTF-8"));
-	    		System.out.println("ipAddr: " + ipResult);
-			}
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		String address [] = ipResult.split(":");
+		String fsPath = zkc.createPath("fileserver");
 		
-		System.out.println(address[0] + " -- " + address[1]);
+		String [] address = null;
+		do {
+			try {
+				byte [] taskstatus = zkc.getZooKeeper().getData(fsPath, false, null);
+				
+				if (taskstatus != null) {
+		    		// task is done
+		    		ipResult = (new String(taskstatus, "UTF-8"));
+		    		System.out.println("ipAddr: " + ipResult);
+		    		
+		    		address = ipResult.split(":");
+		    		
+		    		System.out.println(address[0] + " -- " + address[1]);
+				}
+				
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+//				e.printStackTrace();
+			}
+		} while (address == null);
 		
 		try {
 			socket = new Socket(address[0], Integer.parseInt(address[1]));
-			ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
-			ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
+			
+			System.out.println("d1");		
 			
 			if (jobOrStatus.toLowerCase().equals(JOB) || jobOrStatus.toLowerCase().equals(STATUS)) {
 				
@@ -79,18 +85,48 @@ public class ClientDriver {
 				sendpacket.query = jobOrStatus.toLowerCase();
 				sendpacket.hash = hash;
 
+				ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
 				os.writeObject(sendpacket);
 				
+				ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
 				JTPacket recvpacket = (JTPacket)is.readObject();
+				
 				System.out.println("STATUS: " + recvpacket.status);
 				System.out.println("RESULT: " + recvpacket.result);
+				
+//				System.out.println("connected to server");
+//				
+//				FSPacket sendpacket = new FSPacket();
+//				sendpacket.partitionID = 2;
+//				
+//				System.out.println("Sending Packet: " + sendpacket.partitionID);
+//
+//				ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
+//				
+//				System.out.println("d2");
+//				
+//				os.writeObject(sendpacket);
+//				
+//				ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
+//				
+//				System.out.println("d3");
+//					
+//				FSPacket recvpacket = (FSPacket)is.readObject();
+//				
+//				System.out.println("PARTITION: " + recvpacket.partitionID);
+//				System.out.println("WORDS: " + recvpacket.list.size());
+//				
+			} else {
+				System.out.println(jobOrStatus);
 			}
+			
+			System.out.println("d4");
+			
+			socket.close();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
 	}
 
 	public ClientDriver(String hosts) {

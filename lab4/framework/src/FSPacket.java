@@ -9,8 +9,8 @@ public class FSPacket implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private int partitionID;
-	private List<String> list = new ArrayList<String>();
+	public int partitionID = 0;
+	public List<String> list = new ArrayList<String>();
 
 	
 	public FSPacket() {

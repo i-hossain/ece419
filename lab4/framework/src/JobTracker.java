@@ -23,7 +23,7 @@ public class JobTracker {
 	public static final String TASK_GROUP = "tasks";
 	public static final String HANDLER = "handler";
 	
-	public static int NUM_DICT_PART = 10;
+	public static int NUM_DICT_PART = 2658;
 	
 	private Watcher watcher;
 	
@@ -51,6 +51,11 @@ public class JobTracker {
     	String trackerPath = zkc.createPath(TRACKER);
     	if (zkc.joinzDaGroupz(trackerPath, trackerData, watcher))
     		dozDaShiz();
+    	
+    	System.out.println("Sleeping...");
+        while (true) {
+            try{ Thread.sleep(5000); } catch (Exception e) {}
+        }
 	}
 
 	private void dozDaShiz() {
@@ -178,25 +183,12 @@ public class JobTracker {
                     if (type == EventType.NodeCreated) {
                         System.out.println(trackerPath + " created!");
                         try{ Thread.sleep(5000); } catch (Exception e) {}
-                        if (zkc.joinzDaGroupz(trackerPath, trackerData, watcher))
-                    		dozDaShiz();
+                        zkc.joinzDaGroupz(trackerPath, trackerData, watcher);
+//                        if (zkc.joinzDaGroupz(trackerPath, trackerData, watcher))
+//                    		dozDaShiz();
                     }
                 }
         
             } };
-    }
-    
-    public static String getHash(String word) {
-
-        String hash = null;
-        try {
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
-            BigInteger hashint = new BigInteger(1, md5.digest(word.getBytes()));
-            hash = hashint.toString(16);
-            while (hash.length() < 32) hash = "0" + hash;
-        } catch (NoSuchAlgorithmException nsae) {
-            // ignore
-        }
-        return hash;
     }
 }

@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -22,7 +23,7 @@ import org.apache.zookeeper.Watcher.Event.EventType;
 
 public class FileServer {
 	
-	public static final String FILESERVER = "fileServer";
+	public static final String FILESERVER = "fileserver";
 	public ZkConnector zkc;
 	
 	private ServerSocket myServerSock;
@@ -35,9 +36,9 @@ public class FileServer {
 	private static int partitionID = 1;	
 	
 	private static List<String> list = new ArrayList<String>();
-	private static Map<Integer, List> dictionary = new HashMap<Integer, List>();
+	private static Map<Integer, List<String>> dictionary = new HashMap<Integer, List<String>>();
 	
-	
+	String file = "";
 	
 	public static void main(String[] args) throws IOException
 	{
@@ -46,36 +47,49 @@ public class FileServer {
             return;
         }
     	
-    	FileServer fs = new FileServer(args[0]);
-    	fs.start(args[1]);
+    	FileServer fs = new FileServer(args[0], args[1]);
+    	fs.start();
 	}
 	
-	private void start(String file) throws IOException {
+	private void start() throws IOException {
 		
 		String trackerPath = zkc.createPath(FILESERVER);
-    	zkc.joinzDaGroupz(trackerPath, fileServerData, watcher);
-		
-		FileInputStream fstream = new FileInputStream(file);
+    	if (zkc.joinzDaGroupz(trackerPath, fileServerData, watcher))
+    		dozDaShiz();
+    	
+//    	System.out.println("Sleeping...");
+//        while (true) {
+//            try{ Thread.sleep(5000); } catch (Exception e) {}
+//        }
+	}
+	
+	private void dozDaShiz() {
+		FileInputStream fstream = null;
+		try {
+			fstream = new FileInputStream(file);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 
 		String line;
-		int reset_count = 0;
-		
 		String word = null;
-		String hash = null;
-
-		while ((line = br.readLine()) != null)
-		{
-			word = line;
-			//hash = getHash(word);
-			list.add(word);
-			reset_count++;
-			if (reset_count == partition_size - 1) {
-				reset_count = 0; //Reset counter for next partition
-				dictionary.put(partitionID, list); //Insert the partition into the HashMap
-				partitionID++; //Increment Partition ID
-				list = new ArrayList<String>(); // Work with the new list
+		try {
+			while ((line = br.readLine()) != null)
+			{
+				word = line;
+				//hash = getHash(word);
+				list.add(word);
+				if (list.size() == partition_size) {
+					dictionary.put(partitionID, list); //Insert the partition into the HashMap
+					partitionID++; //Increment Partition ID
+					list = new ArrayList<String>(); // Work with the new list
+				}
 			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 		
 		// add the last list to the dictionary and break
@@ -84,47 +98,59 @@ public class FileServer {
 		}
 
 		//Close the input stream
-		br.close();
+		try {
+			br.close();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
-		//checkDictionary();
+		System.out.println("Initialized dictionary");
 		
-		Thread t = new Thread() {
-//			ServerSocket severSock = new ServerSocket(0);
-        	
-        	public void run() {
-        		Socket socket = null;
-        		FSPacket fspacket = null;
+//		checkDictionary();
+		
+//		Thread t = new Thread() {
+////			ServerSocket severSock = new ServerSocket(0);
+//        	
+//        	public void run() {
+		Socket socket = null;
+		FSPacket fspacket = null;
+		ObjectInputStream is;
+		ObjectOutputStream os;
         		
-        		while (true) {
-					try {
-						socket = myServerSock.accept();
-						ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
-						fspacket = (FSPacket)is.readObject();
-						
-						int partition = fspacket.getID();
-						FSPacket newFSpacket = new FSPacket(partition, dictionary.get(partition));
-						ObjectOutputStream os;
-						
-						os = new ObjectOutputStream(socket.getOutputStream());
-						os.writeObject(newFSpacket);
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-        		}
-        	}
-        };
-        
-        t.start();
+		while (true) {
+			try {
+				socket = myServerSock.accept();
+				is = new ObjectInputStream(socket.getInputStream());
+				fspacket = (FSPacket)is.readObject();
+				
+				System.out.println("PARTITION: " + fspacket.partitionID);
+				
+				fspacket.list = dictionary.get(fspacket.partitionID);
+				
+				os = new ObjectOutputStream(socket.getOutputStream());
+				os.writeObject(fspacket);
+			
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+//        	}
+//        };
+//        
+//        t.start();
 	}
 	
-	public FileServer(String hosts) {
+	public FileServer(String hosts, String file) {
         zkc = new ZkConnector();
         zkc.connect(hosts);
         
+        this.file = file;
+        
         try {
 			myServerSock = new ServerSocket(0);
-			fileServerData = InetAddress.getLocalHost().toString().split("/")[1] + ":" + myServerSock.getLocalPort();
+			fileServerData = InetAddress.getLocalHost().toString().split("/")[0] + ":" + myServerSock.getLocalPort();
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -142,31 +168,20 @@ public class FileServer {
                 if(path.equalsIgnoreCase(myPath)) {
                     if (type == EventType.NodeDeleted) {
                         System.out.println(myPath + " deleted! Let's go!");       
-                        zkc.joinzDaGroupz(myPath, fileServerData, watcher);
+                        if (zkc.joinzDaGroupz(myPath, fileServerData, watcher))
+                    		dozDaShiz();
                     }
                     if (type == EventType.NodeCreated) {
                         System.out.println(myPath + " created!");
                         try{ Thread.sleep(5000); } catch (Exception e) {}
                         zkc.joinzDaGroupz(myPath, fileServerData, watcher);
+//                        if (zkc.joinzDaGroupz(myPath, fileServerData, watcher))
+//                    		dozDaShiz();
                     }
                 }
         
             } };
     }
-	
-	public static String getHash(String word) {
-		
-		 String hash = null;
-		    try {
-		        MessageDigest md5 = MessageDigest.getInstance("MD5");
-		        BigInteger hashint = new BigInteger(1, md5.digest(word.getBytes()));
-		        hash = hashint.toString(16);
-		        while (hash.length() < 32) hash = "0" + hash;
-		    } catch (Exception nsae) {
-		    // ignore
-		    }
-		    return hash;
-	}
 	
 	public static void checkDictionary () {
 		
