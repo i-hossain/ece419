@@ -139,6 +139,7 @@ public class JobTracker {
 			        	Stat statH = zkc.exists(handlerPath, null);
 			        	
 			        	if(statH == null) {
+			        		executor.submit(new TaskHandler(zkc, hashPath));
 			        		zkc.joinzDaGroupz(handlerPath, null, null);
 			        	}
 		        	}

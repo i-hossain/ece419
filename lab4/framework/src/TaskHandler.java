@@ -35,7 +35,7 @@ public class TaskHandler implements Runnable {
 		
 		int childNum = 0;
 		
-		String handlerPath = zkc.createPath(JobTracker.HANDLER);
+		String handlerPath = zkc.appendPath(taskPath, JobTracker.HANDLER);
 		do {
         	try {
         		sem.acquire();
@@ -60,7 +60,7 @@ public class TaskHandler implements Runnable {
         		e.printStackTrace();
         		sem.release();
 			}
-        } while (childNum != 0);
+        } while (childNum != 1);
 		
 		System.out.println("Finished TaskChecker " + taskPath);
 		
@@ -69,6 +69,9 @@ public class TaskHandler implements Runnable {
 				String result = FAIL + "-" + "password not found";
 				zkc.getZooKeeper().setData(taskPath, result.getBytes(), -1);
 			}
+			
+			// leave the handler group
+			zkc.leaveGroup(handlerPath);
 		} catch (KeeperException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -84,7 +87,7 @@ public class TaskHandler implements Runnable {
     		String resultString = new String(taskstatus, "UTF-8");
     		String [] result = resultString.split("-");
     		
-    		System.out.println("Result " + acqPath + " : " + resultString);
+//    		System.out.println("Result " + acqPath + " : " + resultString);
     		
     		if (result[0].equals(SUCCESS)) {
     			zkc.getZooKeeper().setData(taskPath, resultString.getBytes(), -1);
@@ -93,11 +96,11 @@ public class TaskHandler implements Runnable {
     		
     		try {
     			// this is if worker didn't delete the znode
-    			zkc.leaveGroup(acceptTaskPath);
     			zkc.leaveGroup(acqPath);
     		} catch (KeeperException e) {
 				// TODO Auto-generated catch block
 				// ignore no node exception
+    			System.out.println("Cant delete " + acqPath);
 			}
     	}
 	}

@@ -11,7 +11,7 @@ import org.apache.zookeeper.data.Stat;
 
 public class ClientDriver {
 
-	public static final String TRACKER = "fileserver";
+	public static final String TRACKER = "tracker";
 	public static final String JOB = "job";
 	public static final String STATUS = "status";
 	public ZkConnector zkc;
@@ -51,12 +51,10 @@ public class ClientDriver {
 			}
 		}
 		
-		String fsPath = zkc.createPath("fileserver");
-		
 		String [] address = null;
 		do {
 			try {
-				byte [] taskstatus = zkc.getZooKeeper().getData(fsPath, false, null);
+				byte [] taskstatus = zkc.getZooKeeper().getData(trackerPath, false, null);
 				
 				if (taskstatus != null) {
 		    		// task is done
@@ -77,7 +75,7 @@ public class ClientDriver {
 		try {
 			socket = new Socket(address[0], Integer.parseInt(address[1]));
 			
-			System.out.println("d1");		
+//			System.out.println("d1");		
 			
 			if (jobOrStatus.toLowerCase().equals(JOB) || jobOrStatus.toLowerCase().equals(STATUS)) {
 				
@@ -120,7 +118,7 @@ public class ClientDriver {
 				System.out.println(jobOrStatus);
 			}
 			
-			System.out.println("d4");
+//			System.out.println("d4");
 			
 			socket.close();
 		} catch (Exception e) {

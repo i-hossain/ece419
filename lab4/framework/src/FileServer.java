@@ -124,7 +124,7 @@ public class FileServer {
 				is = new ObjectInputStream(socket.getInputStream());
 				fspacket = (FSPacket)is.readObject();
 				
-				System.out.println("PARTITION: " + fspacket.partitionID);
+//				System.out.println("PARTITION: " + fspacket.partitionID);
 				
 				fspacket.list = dictionary.get(fspacket.partitionID);
 				

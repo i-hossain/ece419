@@ -109,7 +109,7 @@ public class Worker {
             			String acqPath = zkc.appendPath(taskPath, partition);
             			if(takeTask(acqPath)) {
             				// we have taken the task
-            				System.out.println("We took " + acqPath);
+//            				System.out.println("We took " + acqPath);
             				// now do stuff
             				String result = doTask(taskHash, Integer.parseInt(partition));
             				zkc.getZooKeeper().setData(acqPath, result.getBytes(), -1);
@@ -120,8 +120,8 @@ public class Worker {
         	} catch (KeeperException e) {
 				// TODO Auto-generated catch block
 				// ignore no node exception
-    			//System.out.println("EXCEPTION: " + e.getMessage());
-        		e.printStackTrace();
+    			System.out.println("EXCEPTION: " + e.getMessage());
+//        		e.printStackTrace();
         		sem.release();
 			}
         } while (true);
@@ -163,11 +163,11 @@ public class Worker {
 				if (taskstatus != null) {
 		    		// task is done
 		    		ipResult = (new String(taskstatus, "UTF-8"));
-		    		System.out.println("ipAddr: " + ipResult);
+//		    		System.out.println("ipAddr: " + ipResult);
 		    		
 		    		String [] address = ipResult.split(":");
 		    		
-		    		System.out.println(address[0] + " -- " + address[1]);
+//		    		System.out.println(address[0] + " -- " + address[1]);
 		    		
 		    		return address;
 				}
@@ -196,8 +196,8 @@ public class Worker {
 			ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
 			FSPacket recvpacket = (FSPacket)is.readObject();
 			
-			System.out.println("PARTITION: " + recvpacket.partitionID);
-			System.out.println("WORDS: " + recvpacket.list.size());
+//			System.out.println("PARTITION: " + recvpacket.partitionID);
+//			System.out.println("WORDS: " + recvpacket.list.size());
 			
 			socket.close();
 			

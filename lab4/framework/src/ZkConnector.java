@@ -110,12 +110,12 @@ public class ZkConnector implements Watcher {
     public boolean checkAndCreate(String path, String data, CreateMode mode, Watcher watch) throws KeeperException, InterruptedException {
         Stat stat = this.exists(path, watch);
         if (stat == null) {              // znode doesn't exist; let's try creating it
-        	System.out.println("Creating " + path);
+//        	System.out.println("Creating " + path);
         	Code ret = this.create(path,
                     data,
                     mode);
             if (ret == Code.OK) {
-            	System.out.println("Created " + path);
+//            	System.out.println("Created " + path);
             	return true;
             }
         }
