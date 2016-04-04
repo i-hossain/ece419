@@ -32,6 +32,10 @@ public class TaskHandler implements Runnable {
 	@Override
 	public void run() {
 		System.out.println("Started TaskChecker " + taskPath);
+		
+		int childNum = 0;
+		
+		String handlerPath = zkc.createPath(JobTracker.HANDLER);
 		do {
         	try {
         		sem.acquire();
@@ -40,7 +44,11 @@ public class TaskHandler implements Runnable {
 		
 				List<String> taskParts = zkc.getZooKeeper().getChildren(taskPath, watcher);
 				
+				childNum = taskParts.size();
+				
 				for (String partition : taskParts) {
+					if (partition.equals(handlerPath))
+						continue;
 					// the task is not complete yet
 	    			String acqPath = zkc.appendPath(taskPath, partition);
 	    			parseResult(taskPath, acqPath);
@@ -52,9 +60,19 @@ public class TaskHandler implements Runnable {
         		e.printStackTrace();
         		sem.release();
 			}
-        } while (resultCount < JobTracker.NUM_DICT_PART);
+        } while (childNum != 0);
 		
 		System.out.println("Finished TaskChecker " + taskPath);
+		
+		try {
+			if (zkc.getZooKeeper().getData(taskPath, false, null) == null) {
+				String result = FAIL + "-" + "password not found";
+				zkc.getZooKeeper().setData(taskPath, result.getBytes(), -1);
+			}
+		} catch (KeeperException | InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void parseResult(String taskPath, String acqPath) throws KeeperException, InterruptedException, UnsupportedEncodingException {
@@ -63,17 +81,18 @@ public class TaskHandler implements Runnable {
     	byte [] taskstatus = zkc.getZooKeeper().getData(acqPath, false, null);
     	if (taskstatus != null) {
     		// task is done
-    		String [] result = (new String(taskstatus, "UTF-8")).split("-");
+    		String resultString = new String(taskstatus, "UTF-8");
+    		String [] result = resultString.split("-");
     		
-    		System.out.println("Result " + acqPath + " : " + new String(taskstatus, "UTF-8"));
+    		System.out.println("Result " + acqPath + " : " + resultString);
     		
     		if (result[0].equals(SUCCESS)) {
-    			zkc.getZooKeeper().setData(taskPath, result[1].getBytes(), -1);
+    			zkc.getZooKeeper().setData(taskPath, resultString.getBytes(), -1);
     		}
     		resultCount++;
     		
     		try {
-    			// this is if worker didnt delete the znode
+    			// this is if worker didn't delete the znode
     			zkc.leaveGroup(acceptTaskPath);
     			zkc.leaveGroup(acqPath);
     		} catch (KeeperException e) {

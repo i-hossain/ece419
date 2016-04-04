@@ -6,7 +6,6 @@ import java.util.concurrent.Semaphore;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.Watcher.Event.EventType;
 
 
 public class Worker {
@@ -81,6 +80,7 @@ public class Worker {
 //    	if (s == null)
 //    		trackerCreated.await();
     	
+    	String handlerPath = zkc.createPath(JobTracker.HANDLER);
     	
         do {
         	sem.acquire();
@@ -95,6 +95,9 @@ public class Worker {
         			List<String> taskParts = zkc.getZooKeeper().getChildren(taskPath, watcher);
         			
     				for (String partition : taskParts) {
+    					if (partition.equals(handlerPath))
+    						continue;
+    					
     					// the task is not complete yet
             			String acqPath = zkc.appendPath(taskPath, partition);
             			if(takeTask(acqPath)) {

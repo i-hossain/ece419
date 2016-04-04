@@ -22,7 +22,7 @@ public class ClientDriver {
 	
 	public static void main(String[] args) throws IOException
 	{
-		if (args.length != 2) {
+		if (args.length != 3) {
             System.out.println("Usage: java -classpath lib/zookeeper-3.3.2.jar:lib/log4j-1.2.15.jar:. ClientDriver zkServer:clientPort job/status hash");
             return;
         }
@@ -34,8 +34,8 @@ public class ClientDriver {
 	private void start(String jobOrStatus, String hash) {
 		// TODO Auto-generated method stub
 		String ipResult = null;
-		String path = zkc.createPath(TRACKER);
-		Stat s = zkc.exists(path, new Watcher() {
+		String trackerPath = zkc.createPath(TRACKER);
+		Stat s = zkc.exists(trackerPath, new Watcher() {
 				@Override
 				public void process(WatchedEvent event) {
 					// TODO Auto-generated method stub
@@ -52,12 +52,12 @@ public class ClientDriver {
 		}
 		
 		try {
-			byte [] taskstatus = zkc.getZooKeeper().getData(TRACKER, false, null);
+			byte [] taskstatus = zkc.getZooKeeper().getData(trackerPath, false, null);
 			
 			if (taskstatus != null) {
 	    		// task is done
 	    		ipResult = (new String(taskstatus, "UTF-8"));
-	    		System.out.println("result: " + ipResult);
+	    		System.out.println("ipAddr: " + ipResult);
 			}
 			
 		} catch (Exception e) {
@@ -66,27 +66,29 @@ public class ClientDriver {
 		}
 		String address [] = ipResult.split(":");
 		
-//		try {
-//			socket = new Socket(address[0], Integer.parseInt(address[1]));
-//			ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
-//			ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
-//			
-//			if (jobOrStatus.toLowerCase().equals(JOB) || jobOrStatus.toLowerCase().equals(STATUS)) {
-//				
-//				JTPacket sendpacket = new JTPacket();
-//				sendpacket.query = jobOrStatus.toLowerCase();
-//				sendpacket.hash = hash;
-//
-//				os.writeObject(sendpacket);
-//				
-//				JTPacket recvpacket = (JTPacket)is.readObject();
-//				System.out.println("STATUS: " + recvpacket.status);
-//				System.out.println("RESULT: " + recvpacket.result);
-//			}
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		System.out.println(address[0] + " -- " + address[1]);
+		
+		try {
+			socket = new Socket(address[0], Integer.parseInt(address[1]));
+			ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
+			ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
+			
+			if (jobOrStatus.toLowerCase().equals(JOB) || jobOrStatus.toLowerCase().equals(STATUS)) {
+				
+				JTPacket sendpacket = new JTPacket();
+				sendpacket.query = jobOrStatus.toLowerCase();
+				sendpacket.hash = hash;
+
+				os.writeObject(sendpacket);
+				
+				JTPacket recvpacket = (JTPacket)is.readObject();
+				System.out.println("STATUS: " + recvpacket.status);
+				System.out.println("RESULT: " + recvpacket.result);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		
 	}
