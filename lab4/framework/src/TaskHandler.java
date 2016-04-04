@@ -24,7 +24,7 @@ public class TaskHandler implements Runnable {
     	watcher = new Watcher() {
             @Override
             public void process(WatchedEvent event) {
-            	sem.release();
+            	//sem.release();
             }
         };
 	}
@@ -38,11 +38,11 @@ public class TaskHandler implements Runnable {
 		String handlerPath = zkc.appendPath(taskPath, JobTracker.HANDLER);
 		do {
         	try {
-        		sem.acquire();
+        		//sem.acquire();
         		
 				// TODO Auto-generated method stub
 		
-				List<String> taskParts = zkc.getZooKeeper().getChildren(taskPath, watcher);
+				List<String> taskParts = zkc.getZooKeeper().getChildren(taskPath, null);
 				
 				childNum = taskParts.size();
 				
@@ -57,8 +57,8 @@ public class TaskHandler implements Runnable {
 				// TODO Auto-generated catch block
 				// ignore no node exception
     			//System.out.println("EXCEPTION: " + e.getMessage());
-        		e.printStackTrace();
-        		sem.release();
+        		//e.printStackTrace();
+        		//sem.release();
 			}
         } while (childNum != 1);
 		

@@ -61,7 +61,7 @@ public class Worker {
             public void process(WatchedEvent event) {
 //                if (event.getType() == EventType.NodeChildrenChanged ||
 //                		event.getType() == EventType.NodeDeleted) {
-                    sem.release();
+//                    sem.release();
 //                }
             }
         };
@@ -90,16 +90,16 @@ public class Worker {
     	String handlerPath = zkc.createPath(JobTracker.HANDLER);
     	
         do {
-        	sem.acquire();
+        	//sem.acquire();
         	
         	try {        		
-	        	List<String> children = zkc.getZooKeeper().getChildren(path, watcher);
+	        	List<String> children = zkc.getZooKeeper().getChildren(path, null);
 	        	
 	        	for (String taskHash : children) {
         			// we have some tasks
 	        		String taskPath = zkc.appendPath(path, taskHash);
 
-        			List<String> taskParts = zkc.getZooKeeper().getChildren(taskPath, watcher);
+        			List<String> taskParts = zkc.getZooKeeper().getChildren(taskPath, null);
         			
     				for (String partition : taskParts) {
     					if (partition.equals(handlerPath))
@@ -120,9 +120,9 @@ public class Worker {
         	} catch (KeeperException e) {
 				// TODO Auto-generated catch block
 				// ignore no node exception
-    			System.out.println("EXCEPTION: " + e.getMessage());
+    			//System.out.println("EXCEPTION: " + e.getMessage());
 //        		e.printStackTrace();
-        		sem.release();
+        		//sem.release();
 			}
         } while (true);
     }
