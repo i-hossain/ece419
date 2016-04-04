@@ -121,9 +121,12 @@ public class ClientDriver {
 //			System.out.println("d4");
 			
 			socket.close();
-		} catch (Exception e) {
+		} catch (NumberFormatException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (IOException e) {
+			// socket crashed
+			// ignore
 		}
 	}
 
