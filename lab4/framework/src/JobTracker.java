@@ -94,7 +94,7 @@ public class JobTracker {
 //		        	else {
 		        		if (zkc.createzDaGroupz(hashPath, null, null) == false) {
 		        			// job already submitted
-			        		response.status = "Job already submitted!";
+			        		response.status = JTPacket.submitted;
 		        		}
 		        		else {
 		        			System.out.println("Started CreatePartition " + hashPath);
@@ -106,7 +106,7 @@ public class JobTracker {
 			        		
 							executor.submit(new TaskHandler(zkc, hashPath));
 							
-							response.status = "Job submitted!";
+							response.status = JTPacket.already_submitted;
 		        		}
 		        		
 						String handlerPath = zkc.appendPath(hashPath, HANDLER);
@@ -116,21 +116,21 @@ public class JobTracker {
 		        	Stat stat = zkc.exists(hashPath, null);
 		        	if (stat == null) {
 		        		// job was never submitted
-		        		response.status = "Job was never submitted";
+		        		response.status = JTPacket.never_submitted;
 		        	}
 		        	else {
 		        		byte [] taskstatus = zkc.getZooKeeper().getData(hashPath, false, null);
 		        		
 		        		if (taskstatus == null) {
 		        			// job is in progress
-		        			response.status = "In Progress";
+		        			response.status = JTPacket.in_progress;
 		        		}
 		        		else {
 		        			String [] result = (new String(taskstatus, "UTF-8")).split("-");
 		        			
 		        			System.out.println("taskstatus " + new String(taskstatus, "UTF-8"));
 		        			
-		        			response.status = result[0].toLowerCase();
+		        			response.status = Integer.parseInt(result[0]);
 		        			response.result = result[1];
 		        		}
 		        		

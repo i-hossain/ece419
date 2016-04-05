@@ -8,5 +8,10 @@ public class JTPacket implements Serializable {
 	public String query = "";
 	public String hash = "";
 	public String result = "";
-	public String status = "";
+	public int status;
+	
+	public static int submitted = 1;
+	public static int already_submitted = 2;
+	public static int never_submitted = 3;
+	public static int in_progress = 4;
 }
