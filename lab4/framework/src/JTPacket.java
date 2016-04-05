@@ -14,4 +14,6 @@ public class JTPacket implements Serializable {
 	public static int already_submitted = 2;
 	public static int never_submitted = 3;
 	public static int in_progress = 4;
+	public static int success = 5;
+	public static int failure = 6;
 }

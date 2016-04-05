@@ -112,6 +112,13 @@ public class Worker {
 //            				System.out.println("We took " + acqPath);
             				// now do stuff
             				String result = doTask(taskHash, Integer.parseInt(partition));
+            				
+            				String [] resultArr = result.split("-");
+            				
+            				if (resultArr[0].equals(TaskHandler.SUCCESS)) {
+            	    			zkc.getZooKeeper().setData(taskPath, result.getBytes(), -1);
+            	    		}
+            				
             				zkc.getZooKeeper().setData(acqPath, result.getBytes(), -1);
             				releaseTask(acqPath);
             			}
@@ -130,6 +137,7 @@ public class Worker {
     private void releaseTask(String acqPath) throws KeeperException, InterruptedException {
     	String acceptTaskPath = zkc.appendPath(acqPath, TASK_ACCEPTED);
     	zkc.leaveGroup(acceptTaskPath);
+    	zkc.leaveGroup(acqPath);
 	}
 
 	private boolean takeTask(String acqPath) throws KeeperException, InterruptedException {

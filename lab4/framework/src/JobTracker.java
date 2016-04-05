@@ -1,12 +1,10 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -104,13 +102,13 @@ public class JobTracker {
 			            	}
 			        		System.out.println("Finished CreatePartition " + hashPath);
 			        		
-							executor.submit(new TaskHandler(zkc, hashPath));
+//							executor.submit(new TaskHandler(zkc, hashPath));
 							
 							response.status = JTPacket.already_submitted;
 		        		}
 		        		
-						String handlerPath = zkc.appendPath(hashPath, HANDLER);
-						zkc.joinzDaGroupz(handlerPath, null, null);
+//						String handlerPath = zkc.appendPath(hashPath, HANDLER);
+//						zkc.joinzDaGroupz(handlerPath, null, null);
 		        } 
 		        else if (request.query.equals(ClientDriver.STATUS)) {
 		        	Stat stat = zkc.exists(hashPath, null);
@@ -122,26 +120,32 @@ public class JobTracker {
 		        		byte [] taskstatus = zkc.getZooKeeper().getData(hashPath, false, null);
 		        		
 		        		if (taskstatus == null) {
-		        			// job is in progress
-		        			response.status = JTPacket.in_progress;
+		        			// job is in progress or it failed
+		        			
+		        			List<String> taskParts = zkc.getZooKeeper().getChildren(hashPath, false);
+		        			
+		        			if (taskParts.size() != 0)
+		        				response.status = JTPacket.in_progress;
+		        			else
+		        				response.status = JTPacket.failure;
 		        		}
 		        		else {
 		        			String [] result = (new String(taskstatus, "UTF-8")).split("-");
 		        			
 		        			System.out.println("taskstatus " + new String(taskstatus, "UTF-8"));
 		        			
-		        			response.status = Integer.parseInt(result[0]);
+		        			response.status = JTPacket.success;
 		        			response.result = result[1];
 		        		}
 		        		
 		        		// Special case where handler crashed.. 
-			        	String handlerPath = zkc.appendPath(hashPath, HANDLER);
-			        	Stat statH = zkc.exists(handlerPath, null);
-			        	
-			        	if(statH == null) {
-			        		executor.submit(new TaskHandler(zkc, hashPath));
-			        		zkc.joinzDaGroupz(handlerPath, null, null);
-			        	}
+//			        	String handlerPath = zkc.appendPath(hashPath, HANDLER);
+//			        	Stat statH = zkc.exists(handlerPath, null);
+//			        	
+//			        	if(statH == null) {
+//			        		executor.submit(new TaskHandler(zkc, hashPath));
+//			        		zkc.joinzDaGroupz(handlerPath, null, null);
+//			        	}
 		        	}
 		        }
 		        

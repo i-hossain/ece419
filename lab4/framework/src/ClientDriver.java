@@ -59,11 +59,11 @@ public class ClientDriver {
 				if (taskstatus != null) {
 		    		// task is done
 		    		ipResult = (new String(taskstatus, "UTF-8"));
-		    		System.out.println("ipAddr: " + ipResult);
+//		    		System.out.println("ipAddr: " + ipResult);
 		    		
 		    		address = ipResult.split(":");
 		    		
-		    		System.out.println(address[0] + " -- " + address[1]);
+//		    		System.out.println(address[0] + " -- " + address[1]);
 				}
 				
 			} catch (Exception e) {
@@ -89,8 +89,11 @@ public class ClientDriver {
 				ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
 				JTPacket recvpacket = (JTPacket)is.readObject();
 				
-				System.out.println("STATUS: " + recvpacket.status);
-				System.out.println("RESULT: " + recvpacket.result);
+//				System.out.println("STATUS: " + recvpacket.status);
+				// Failed: Password not found
+				// Password found: t33ing
+//				if (recvpacket.status.equals("success"))
+//				System.out.println("RESULT: " + recvpacket.result);
 				
 //				System.out.println("connected to server");
 //				
