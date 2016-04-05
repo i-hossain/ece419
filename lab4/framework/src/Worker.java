@@ -109,9 +109,11 @@ public class Worker {
             			String acqPath = zkc.appendPath(taskPath, partition);
             			if(takeTask(acqPath)) {
             				// we have taken the task
-//            				System.out.println("We took " + acqPath);
+            				
             				// now do stuff
             				String result = doTask(taskHash, Integer.parseInt(partition));
+            				
+            				System.out.println("We took " + acqPath + " :: " + result);
             				
             				String [] resultArr = result.split("-");
             				

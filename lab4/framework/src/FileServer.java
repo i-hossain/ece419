@@ -32,7 +32,11 @@ public class FileServer {
 	
 	private String fileServerData = "";
 
-	static final int partition_size = 100;
+	// num words 265,744
+	
+	// 265,744 / 34 = 7816
+	
+	static final int partition_size = 7816;
 	private static int partitionID = 1;	
 	
 	private static List<String> list = new ArrayList<String>();

@@ -21,7 +21,7 @@ public class JobTracker {
 	public static final String TASK_GROUP = "tasks";
 	public static final String HANDLER = "handler";
 	
-	public static int NUM_DICT_PART = 2658;
+	public static int NUM_DICT_PART = 34;
 	
 	private Watcher watcher;
 	
@@ -92,9 +92,13 @@ public class JobTracker {
 //		        	else {
 		        		if (zkc.createzDaGroupz(hashPath, null, null) == false) {
 		        			// job already submitted
-			        		response.status = JTPacket.submitted;
+			        		response.status = JTPacket.already_submitted;
+			        		out.writeObject(response);
 		        		}
 		        		else {
+		        			response.status = JTPacket.submitted;
+		        			out.writeObject(response);
+		        			
 		        			System.out.println("Started CreatePartition " + hashPath);
 			        		for(int i = 1; i <= JobTracker.NUM_DICT_PART; i++) {
 			            		String tpath = zkc.appendPath(hashPath, String.valueOf(i));
@@ -103,8 +107,6 @@ public class JobTracker {
 			        		System.out.println("Finished CreatePartition " + hashPath);
 			        		
 //							executor.submit(new TaskHandler(zkc, hashPath));
-							
-							response.status = JTPacket.already_submitted;
 		        		}
 		        		
 //						String handlerPath = zkc.appendPath(hashPath, HANDLER);
@@ -147,9 +149,9 @@ public class JobTracker {
 //			        		zkc.joinzDaGroupz(handlerPath, null, null);
 //			        	}
 		        	}
+		        	
+		        	out.writeObject(response);
 		        }
-		        
-		        out.writeObject(response);
 				
 			} catch (IOException | ClassNotFoundException | KeeperException | InterruptedException e) {
 				// TODO Auto-generated catch block

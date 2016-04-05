@@ -10,6 +10,7 @@ public class JTPacket implements Serializable {
 	public String result = "";
 	public int status;
 	
+	public static String [] statusText = {"invalid", "submitted", "already_submitted", "never_submitted", "in_progress"};
 	public static int submitted = 1;
 	public static int already_submitted = 2;
 	public static int never_submitted = 3;

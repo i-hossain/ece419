@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ZK_SCRIPT=~/myzk/bin/zkServer.sh
+ZK_SCRIPT=/homes/h/hossai62/myzk/bin/zkServer.sh
 ZK_DATADIR=/tmp/hossai62/server1/data/version-2
 ZK_HOST=localhost
 ZK_PORT=8234

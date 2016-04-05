@@ -1,0 +1,23 @@
+Team Members:
+1. Rushab Ramesh Kumar #1000117919
+2. Ismail Hossain #998340175
+
+Instructions:
+Run "make clean" to remove the .class files and run "make" to build, from inside the src folder. 
+Scripts are run from the "newscripts" folder which is placed outside src.
+
+To run the individual components, run Zookeeper and go to the newscripts folder
+FileServer:
+./start_filerserver.sh <Zookeper Host> <Zookeeper Port>
+
+JobTracker:
+./start_jobtracker.sh <Zookeper Host> <Zookeeper Port>
+
+Worker:
+./start_worker.sh <Zookeper Host> <Zookeeper Port>
+
+Job Submission:
+./submit_job.sh <Zookeper Host> <Zookeeper Port> <hash>
+
+Job Status:
+./check_job_status.sh <Zookeper Host> <Zookeeper Port> <hash>

@@ -6,7 +6,7 @@ public class MD5Test {
 
     public static void main(String[] args){
         
-        String word = "r41nb0w";
+        String word = "w4ggons";
         String hash = getHash(word);
         System.out.println(hash); 
     }

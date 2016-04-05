@@ -154,7 +154,11 @@ public class ZkConnector implements Watcher {
     
     public void leaveGroup(String path) throws KeeperException, InterruptedException {
     	// if the service dies then the service is automatically removed from the group
-        zooKeeper.delete(path, -1);
+    	try {
+    		zooKeeper.delete(path, -1);
+    	} catch (KeeperException | InterruptedException e) {
+			// TODO Auto-generated catch block
+		}
     }
     
     public void listChildren(String path, Watcher watcher) throws KeeperException, InterruptedException {

@@ -89,10 +89,16 @@ public class ClientDriver {
 				ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
 				JTPacket recvpacket = (JTPacket)is.readObject();
 				
-//				System.out.println("STATUS: " + recvpacket.status);
-				// Failed: Password not found
-				// Password found: t33ing
-//				if (recvpacket.status.equals("success"))
+				if (recvpacket.status == JTPacket.success) {
+					System.out.println ("Password found: " + recvpacket.result);
+				}
+				else if (recvpacket.status == JTPacket.failure) {
+					System.out.println ("Failed: Password not found");
+				}
+				else {
+					System.out.println ("Status code: " + recvpacket.status + " " + JTPacket.statusText[recvpacket.status]);
+				}
+				
 //				System.out.println("RESULT: " + recvpacket.result);
 				
 //				System.out.println("connected to server");
